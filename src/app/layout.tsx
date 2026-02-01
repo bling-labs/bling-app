@@ -2,12 +2,21 @@ import type { Metadata } from "next"
 import { Geist_Mono } from "next/font/google"
 import "./globals.css"
 
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-geist-mono",
+})
 
 export const metadata: Metadata = {
   title: "Bling | 콘텐츠 라이센싱 마켓플레이스",
   description:
     "인플루언서 콘텐츠 라이센싱부터 광고 제작, 마케팅까지 한 곳에서. 숏폼 영상과 이미지를 라이센싱하고, 검색 없이 바로 광고에 활용하세요.",
+  openGraph: {
+    title: "Bling | 콘텐츠 라이센싱 마켓플레이스",
+    description:
+      "인플루언서 콘텐츠 라이센싱부터 광고 제작, 마케팅까지 한 곳에서. 숏폼 영상과 이미지를 라이센싱하고, 검색 없이 바로 광고에 활용하세요.",
+  },
 }
 
 export default function RootLayout({
@@ -16,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={geistMono.variable}>
       <body className="font-sans antialiased">{children}</body>
     </html>
   )

@@ -1,5 +1,3 @@
-"use client"
-
 import { ArrowRight, Check, Briefcase, Palette } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -43,8 +41,8 @@ export function ValueProps() {
 
             {/* Benefits */}
             <ul className="space-y-3 mb-8">
-              {advertiserBenefits.map((benefit, index) => (
-                <li key={index} className="flex items-start gap-3">
+              {advertiserBenefits.map((benefit) => (
+                <li key={benefit} className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                   <span className="text-sm text-muted-foreground">{benefit}</span>
                 </li>
@@ -75,8 +73,8 @@ export function ValueProps() {
 
             {/* Benefits */}
             <ul className="space-y-3 mb-8">
-              {influencerBenefits.map((benefit, index) => (
-                <li key={index} className="flex items-start gap-3">
+              {influencerBenefits.map((benefit) => (
+                <li key={benefit} className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
                   <span className="text-sm text-muted-foreground">{benefit}</span>
                 </li>

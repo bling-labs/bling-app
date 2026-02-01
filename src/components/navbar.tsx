@@ -46,6 +46,9 @@ export function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
+            type="button"
+            aria-label={isOpen ? "메뉴 닫기" : "메뉴 열기"}
+            aria-expanded={isOpen}
             className="md:hidden p-2 text-muted-foreground hover:text-foreground"
             onClick={() => setIsOpen(!isOpen)}
           >

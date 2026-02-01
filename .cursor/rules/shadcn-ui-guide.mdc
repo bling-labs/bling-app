@@ -1,0 +1,91 @@
+---
+globs: components/ui/*.tsx,components/**/*.tsx
+---
+
+# Shadcn/UI 컴포넌트 가이드라인
+
+## 컴포넌트 설치
+- CLI로 컴포넌트 설치: `npx shadcn-ui@latest add [component]`
+- 컴포넌트는 `components/ui/`에 추가됨
+- ui 폴더에서 직접 컴포넌트 커스터마이징
+
+## Tailwind로 스타일링
+
+### 클래스 정렬 순서
+1. 레이아웃 (flex, grid, block)
+2. 위치 (relative, absolute)
+3. 크기 (w-, h-, max-, min-)
+4. 간격 (p-, m-, gap-)
+5. 타이포그래피 (text-, font-)
+6. 비주얼 (bg-, border-, shadow-)
+7. 효과 (hover:, focus:, dark:)
+
+### 예시
+```typescript
+<div className="flex flex-col w-full max-w-md p-4 space-y-4 bg-white border rounded-lg shadow-sm hover:shadow-md">
+```
+
+### cn() 헬퍼 사용
+- 항상 `lib/utils.ts`의 `cn()` 유틸리티 사용
+- Tailwind 클래스를 올바르게 병합하는 데 도움
+
+```typescript
+import { cn } from "@/lib/utils"
+
+<div className={cn("base-classes", className)} />
+```
+
+## 컴포넌트 커스터마이징
+
+### Shadcn 컴포넌트 확장
+- 커스텀 변형을 위한 래퍼 컴포넌트 생성
+- 기본 Shadcn 컴포넌트는 `components/ui/`에 유지
+- 커스텀 변형은 기능 폴더에 배치
+
+```typescript
+// components/features/custom-button.tsx
+import { Button } from "@/components/ui/button"
+
+export function CustomButton({ children, ...props }) {
+  return (
+    <Button className="custom-styles" {...props}>
+      {children}
+    </Button>
+  )
+}
+```
+
+## 테마 설정
+
+### 색상
+- `tailwind.config.ts`에서 정의
+- `globals.css`에서 CSS 변수 사용
+- Shadcn의 테마 구조 따르기
+
+### 다크 모드
+- 다크 모드 스타일에 `dark:` 접두사 사용
+- `next-themes` 패키지로 테마 토글
+- 모든 컴포넌트에서 일관성 유지
+
+## 공통 패턴
+
+### 폼 컴포넌트
+- react-hook-form과 Shadcn Form 사용
+- 항상 적절한 유효성 검사 포함
+- 일관된 에러 메시지
+
+### 다이얼로그/모달 패턴
+- 모달에 Dialog 컴포넌트 사용
+- 적절한 접근성 속성 포함
+- ESC 키와 배경 클릭 처리
+
+### 토스트 알림
+- Sonner 또는 Shadcn Toast 사용
+- 일관된 위치와 스타일링
+- 명확한 성공/오류 상태
+
+## 접근성
+- 모든 Shadcn 컴포넌트는 기본적으로 접근 가능
+- ARIA 속성 제거하지 않기
+- 키보드 내비게이션 테스트
+- 적절한 레이블과 설명 포함

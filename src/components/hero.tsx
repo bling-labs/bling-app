@@ -1,7 +1,9 @@
 "use client"
 
+import Image from "next/image"
 import { ArrowRight, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export function Hero() {
   return (
@@ -97,7 +99,7 @@ export function Hero() {
 function VideoCard({
   image,
   category,
-  className = "",
+  className,
 }: {
   image: string
   category: string
@@ -105,12 +107,17 @@ function VideoCard({
 }) {
   return (
     <div
-      className={`relative rounded-2xl overflow-hidden group cursor-pointer ${className}`}
+      className={cn(
+        "relative w-full rounded-2xl overflow-hidden group cursor-pointer",
+        className
+      )}
     >
-      <img
+      <Image
         src={image || "/placeholder.svg"}
         alt={category}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        fill
+        sizes="(max-width: 768px) 50vw, 200px"
+        className="object-cover transition-transform duration-500 group-hover:scale-110"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 

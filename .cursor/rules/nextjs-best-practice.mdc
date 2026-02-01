@@ -1,0 +1,96 @@
+---
+globs: app/**/*.tsx,app/**/*.ts
+---
+
+# Next.js 모범 사례
+
+## 서버 vs 클라이언트 컴포넌트
+
+### 기본적으로 서버 컴포넌트 사용
+- 더 나은 성능을 위해 기본적으로 서버 컴포넌트 사용
+- 서버 컴포넌트는 데이터를 직접 가져올 수 있음
+- 서버 컴포넌트에는 "use client" 지시문이 필요 없음
+
+### 클라이언트 컴포넌트 사용 시기:
+- React 훅 사용 시 (useState, useEffect 등)
+- 브라우저 전용 API 사용 시
+- 사용자 인터랙션 처리 시 (onClick, onChange 등)
+- Context Provider 사용 시
+- 파일 상단에 `"use client"` 추가
+
+## 데이터 페칭
+
+### 서버 컴포넌트
+```typescript
+// 서버 컴포넌트에서 직접 데이터 가져오기
+async function BlogPage() {
+  const posts = await fetch('https://api.example.com/posts')
+  const data = await posts.json()
+  
+  return <div>{/* 데이터 렌더링 */}</div>
+}
+```
+
+### 클라이언트 컴포넌트
+- `useEffect` 같은 훅이나 SWR/React Query 같은 라이브러리 사용
+- 초기 데이터 로딩은 서버 컴포넌트 사용 권장
+
+## 라우팅 및 레이아웃
+
+### 파일 기반 라우팅
+- `page.tsx` - 고유한 페이지 콘텐츠
+- `layout.tsx` - 공유 레이아웃 래퍼
+- `loading.tsx` - 로딩 UI
+- `error.tsx` - 에러 처리
+- `not-found.tsx` - 404 페이지
+
+### 동적 라우트
+- `[id]` - 동적 라우트 세그먼트
+- `[...slug]` - 모든 경로 캐치
+- `[[...slug]]` - 선택적 모든 경로 캐치
+
+## 메타데이터 및 SEO
+
+### 항상 메타데이터 포함
+```typescript
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: '페이지 제목',
+  description: '페이지 설명',
+  openGraph: {
+    title: 'OG 제목',
+    description: 'OG 설명',
+  },
+}
+```
+
+### 동적 메타데이터
+```typescript
+export async function generateMetadata({ params }): Promise<Metadata> {
+  const data = await fetchData(params.id)
+  return {
+    title: data.title,
+    description: data.description,
+  }
+}
+```
+
+## API 라우트
+
+### 라우트 핸들러
+- `app/api/` 디렉토리에 배치
+- `route.ts` 파일명 사용
+- 이름이 있는 함수 export: GET, POST, PUT, DELETE, PATCH
+
+```typescript
+// app/api/posts/route.ts
+export async function GET(request: Request) {
+  return Response.json({ data: [] })
+}
+
+export async function POST(request: Request) {
+  const body = await request.json()
+  return Response.json({ success: true })
+}
+```

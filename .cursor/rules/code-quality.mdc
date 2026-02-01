@@ -1,0 +1,226 @@
+---
+alwaysApply: true
+---
+
+# 코드 품질 가이드라인
+
+## 컴포넌트 설계 원칙
+
+### 단일 책임 원칙
+- 각 컴포넌트는 한 가지를 잘 수행해야 함
+- 복잡한 로직은 훅으로 추출
+- 컴포넌트를 집중적이고 테스트 가능하게 유지
+
+### 재사용성 우선
+- 새 컴포넌트를 만들기 전에 항상 유사한 컴포넌트가 있는지 확인
+- 유연하고 재사용 가능하게 컴포넌트 설계
+- 중복보다 조합 사용
+- 공통 패턴을 공유 컴포넌트로 추출
+
+### 조합 패턴
+```typescript
+// 좋음 - 조합 가능
+<Card>
+  <CardHeader>
+    <CardTitle>제목</CardTitle>
+  </CardHeader>
+  <CardContent>내용</CardContent>
+</Card>
+
+// 나쁨 - 단일체
+<Card title="제목" content="내용" />
+```
+
+## 에러 처리
+
+### 에러 바운더리
+```typescript
+// app/error.tsx
+'use client'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return (
+    <div>
+      <h2>문제가 발생했습니다!</h2>
+      <button onClick={reset}>다시 시도</button>
+    </div>
+  )
+}
+```
+
+### API 에러 처리
+```typescript
+async function fetchData() {
+  try {
+    const res = await fetch('/api/data')
+    
+    if (!res.ok) {
+      throw new Error(`HTTP 오류! 상태: ${res.status}`)
+    }
+    
+    return await res.json()
+  } catch (error) {
+    console.error('데이터 가져오기 실패:', error)
+    throw error
+  }
+}
+```
+
+### 폼 유효성 검사
+- 스키마 유효성 검사에 Zod 또는 Yup 사용
+- 명확하고 사용자 친화적인 에러 메시지 제공
+- blur와 submit 시 유효성 검사
+
+```typescript
+import { z } from 'zod'
+
+const formSchema = z.object({
+  email: z.string().email('유효하지 않은 이메일 주소'),
+  password: z.string().min(8, '비밀번호는 최소 8자 이상이어야 합니다'),
+})
+```
+
+## 로딩 상태
+
+### 페이지 레벨 로딩
+```typescript
+// app/dashboard/loading.tsx
+export default function Loading() {
+  return <DashboardSkeleton />
+}
+```
+
+### 컴포넌트 레벨 로딩
+```typescript
+function DataComponent() {
+  const [loading, setLoading] = useState(true)
+  
+  if (loading) {
+    return <Skeleton />
+  }
+  
+  return <div>{/* 데이터 */}</div>
+}
+```
+
+### 비동기 컴포넌트에 Suspense 사용
+```typescript
+<Suspense fallback={<LoadingSkeleton />}>
+  <AsyncDataComponent />
+</Suspense>
+```
+
+## 상태 관리
+
+### Zustand
+- 전역 클라이언트 상태에 **Zustand** 사용
+- 스토어는 `src/stores/`에 정의
+- slice 패턴으로 도메인별 스토어 분리
+
+### 서버 상태 vs 클라이언트 상태
+- 서버 상태는 서버 컴포넌트 사용 (useState 불필요)
+- 인터랙티브 UI 상태에만 클라이언트 컴포넌트 사용
+- 복잡한 클라이언트 사이드 데이터 페칭에는 React Query/SWR 고려
+
+### 로컬 상태
+```typescript
+// 좋음 - UI를 위한 로컬 상태
+function Dropdown() {
+  const [isOpen, setIsOpen] = useState(false)
+  // ...
+}
+```
+
+### 필터를 위한 URL 상태
+```typescript
+// 필터, 정렬, 페이지네이션에 searchParams 사용
+import { useSearchParams, useRouter } from 'next/navigation'
+
+function SearchFilter() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  
+  const updateFilter = (value: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('q', value)
+    router.push(`?${params.toString()}`)
+  }
+}
+```
+
+## 커스텀 훅
+
+### 재사용 가능한 로직 추출
+```typescript
+// 좋음 - 재사용 가능한 훅
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false)
+  
+  useEffect(() => {
+    const media = window.matchMedia(query)
+    setMatches(media.matches)
+    
+    const listener = () => setMatches(media.matches)
+    media.addEventListener('change', listener)
+    return () => media.removeEventListener('change', listener)
+  }, [query])
+  
+  return matches
+}
+
+// 사용법
+function Component() {
+  const isMobile = useMediaQuery('(max-width: 768px)')
+}
+```
+
+## 코드 구성
+
+### 일관된 파일 구조
+```typescript
+// 컴포넌트 파일 구조
+// 1. Imports
+// 2. Types/Interfaces
+// 3. 컴포넌트 정의
+// 4. 스타일 (css-in-js 사용 시)
+// 5. Exports
+
+import { Button } from '@/components/ui/button'
+
+interface CardProps {
+  title: string
+  description: string
+}
+
+export function Card({ title, description }: CardProps) {
+  return (
+    <div>
+      <h2>{title}</h2>
+      <p>{description}</p>
+    </div>
+  )
+}
+```
+
+### 관련 코드 그룹화
+- 관련 컴포넌트를 함께 유지
+- 테스트를 컴포넌트와 함께 배치
+- 기능별로 유틸리티 그룹화
+
+## 모범 사례 체크리스트
+- [ ] 컴포넌트가 작고 집중적임
+- [ ] 적절한 에러 처리 구현
+- [ ] 모든 비동기 작업에 로딩 상태
+- [ ] 접근성 속성 포함
+- [ ] TypeScript 타입 정의
+- [ ] 재사용 가능한 로직을 훅으로 추출
+- [ ] 프로덕션 코드에 console.log 없음
+- [ ] 리스트에 적절한 key props
+- [ ] 시맨틱 HTML 사용
+- [ ] 반응형 디자인 구현

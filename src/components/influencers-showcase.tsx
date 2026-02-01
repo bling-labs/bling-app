@@ -1,5 +1,4 @@
-"use client"
-
+import Image from "next/image"
 import { ArrowRight, Star, ImageIcon, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -68,8 +67,8 @@ export function InfluencersShowcase() {
 
         {/* Influencer Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {influencers.map((influencer, index) => (
-            <InfluencerCard key={index} influencer={influencer} />
+          {influencers.map((influencer) => (
+            <InfluencerCard key={influencer.handle} influencer={influencer} />
           ))}
         </div>
       </div>
@@ -81,11 +80,13 @@ function InfluencerCard({ influencer }: { influencer: (typeof influencers)[0] })
   return (
     <div className="group relative bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all">
       {/* Cover Image */}
-      <div className="relative h-32 overflow-hidden">
-        <img
+      <div className="relative h-32 w-full overflow-hidden">
+        <Image
           src={influencer.coverImage || "/placeholder.svg"}
           alt={influencer.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          fill
+          sizes="(max-width: 640px) 50vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
       </div>
@@ -94,11 +95,13 @@ function InfluencerCard({ influencer }: { influencer: (typeof influencers)[0] })
       <div className="relative px-4 pb-4">
         {/* Avatar */}
         <div className="absolute -top-8 left-4">
-          <div className="w-16 h-16 rounded-full border-4 border-card overflow-hidden">
-            <img
+          <div className="relative h-16 w-16 rounded-full border-4 border-card overflow-hidden">
+            <Image
               src={influencer.image || "/placeholder.svg"}
               alt={influencer.name}
-              className="w-full h-full object-cover"
+              fill
+              sizes="64px"
+              className="object-cover"
             />
           </div>
         </div>

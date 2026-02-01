@@ -1,0 +1,9 @@
+---
+alwaysApply: false
+---
+이 프로젝트 작업 시 항상 아래 문서를 먼저 참고하세요:
+- docs/PRD_master.md: 전체 서비스 개요
+- docs/PRD_home.md: 랜딩페이지 명세
+- docs/PRD_contents.md: 콘텐츠 페이지 명세
+
+작업 전 해당 페이지의 PRD를 반드시 읽고 시작하세요.

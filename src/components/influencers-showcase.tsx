@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import { ArrowRight, Star, ImageIcon, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -59,9 +60,11 @@ export function InfluencersShowcase() {
               검증된 크리에이터들의 프로필을 확인하고 콘텐츠를 둘러보세요
             </p>
           </div>
-          <Button variant="ghost" className="text-primary hover:text-primary/90 group self-start sm:self-auto">
-            전체 보기
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          <Button asChild variant="ghost" className="text-primary hover:text-primary/90 group self-start sm:self-auto">
+            <Link href="/influencers">
+              전체 보기
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </Button>
         </div>
 

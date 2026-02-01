@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { ArrowRight, Check, Briefcase, Palette } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -50,9 +51,11 @@ export function ValueProps() {
             </ul>
 
             {/* CTA */}
-            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground group/btn">
-              콘텐츠 둘러보기
-              <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+            <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground group/btn">
+              <Link href="/contents">
+                콘텐츠 둘러보기
+                <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+              </Link>
             </Button>
           </div>
 

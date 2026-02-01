@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useState } from "react"
 import { ArrowRight, Play, Eye, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -72,9 +73,11 @@ export function ContentsShowcase() {
               지금 바로 라이센스 구매가 가능한 트렌디한 영상 콘텐츠
             </p>
           </div>
-          <Button variant="ghost" className="text-primary hover:text-primary/90 group self-start sm:self-auto">
-            전체 보기
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          <Button asChild variant="ghost" className="text-primary hover:text-primary/90 group self-start sm:self-auto">
+            <Link href="/contents">
+              전체 보기
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </Button>
         </div>
 

@@ -2,11 +2,25 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Sparkles, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+const NAV_LINKS = [
+  { href: "/contents", label: "콘텐츠" },
+  { href: "/contest", label: "컨테스트" },
+  { href: "/influencers", label: "인플루언서" },
+] as const
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
+
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/"
+    return pathname.startsWith(href)
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -20,18 +34,20 @@ export function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <Link
-              href="#contents"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              콘텐츠
-            </Link>
-            <Link
-              href="#influencers"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              인플루언서
-            </Link>
+            {NAV_LINKS.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "transition-colors",
+                  isActive(href)
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {label}
+              </Link>
+            ))}
           </div>
 
           {/* Desktop Actions */}
@@ -61,20 +77,21 @@ export function Navbar() {
       {isOpen && (
         <div className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border">
           <div className="px-4 py-4 space-y-4">
-            <Link
-              href="#contents"
-              className="block text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              콘텐츠
-            </Link>
-            <Link
-              href="#influencers"
-              className="block text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              인플루언서
-            </Link>
+            {NAV_LINKS.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "block transition-colors",
+                  isActive(href)
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={() => setIsOpen(false)}
+              >
+                {label}
+              </Link>
+            ))}
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
               <Button variant="ghost" className="w-full justify-start text-muted-foreground">
                 로그인

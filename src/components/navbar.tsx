@@ -1,11 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Sparkles, Menu, X } from "lucide-react"
+import { useTheme } from "next-themes"
+import { Sparkles, Menu, X, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+
+function useHasMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  )
+}
 
 const NAV_LINKS = [
   { href: "/contents", label: "콘텐츠" },
@@ -15,9 +24,17 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const mounted = useHasMounted()
   const pathname = usePathname()
+  const { theme, setTheme } = useTheme()
 
   const isActive = (href: string) => pathname.startsWith(href)
+
+  const isDark = mounted ? theme === "dark" : true
+
+  const toggleTheme = () => {
+    setTheme(isDark ? "light" : "dark")
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -49,6 +66,18 @@ export function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
+            {mounted ? (
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label={isDark ? "라이트 모드로 전환" : "다크 모드로 전환"}
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            ) : (
+              <div className="p-2 w-9 h-9" aria-hidden />
+            )}
             <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
               로그인
             </Button>
@@ -90,6 +119,22 @@ export function Navbar() {
               </Link>
             ))}
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
+              {mounted ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleTheme()
+                    setIsOpen(false)
+                  }}
+                  className="flex items-center gap-2 w-full justify-start px-3 py-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  aria-label={isDark ? "라이트 모드로 전환" : "다크 모드로 전환"}
+                >
+                  {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                  {isDark ? "라이트 모드" : "다크 모드"}
+                </button>
+              ) : (
+                <div className="px-3 py-2 h-10" aria-hidden />
+              )}
               <Button variant="ghost" className="w-full justify-start text-muted-foreground">
                 로그인
               </Button>

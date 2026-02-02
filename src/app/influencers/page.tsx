@@ -5,12 +5,14 @@ import Image from "next/image"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { ArrowRight, ChevronDown, Heart, ImageIcon, Star, Users } from "lucide-react"
+import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Play, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PLATFORM_ICONS } from "@/components/platform-icons"
 import {
   INFLUENCERS_DATA,
-  formatFollower,
+  formatFollowerRange,
   type InfluencerItem,
+  type PlatformType,
 } from "@/data/influencers.json"
 
 const CATEGORIES = [
@@ -112,94 +114,190 @@ function filterInfluencers(
   return result
 }
 
-function InfluencerCard({ influencer }: { influencer: InfluencerItem }) {
-  const followerDisplay = influencer.socialConnected
-    ? formatFollower(influencer.followerCount)
-    : "—"
+const MAX_PLATFORM_ICONS = 3
+
+function PlatformIcons({ platforms }: { platforms: PlatformType[] }) {
+  if (!platforms?.length) return null
+  const display = platforms.slice(0, MAX_PLATFORM_ICONS)
+  const extra = platforms.length - MAX_PLATFORM_ICONS
 
   return (
-    <Link href={`/influencers/${influencer.id}`}>
+    <div className="flex items-center gap-1.5">
+      {display.map((p, i) => {
+        const Icon = PLATFORM_ICONS[p]
+        return Icon ? <Icon key={`${p}-${i}`} className="w-5 h-5 text-muted-foreground" /> : null
+      })}
+      {extra > 0 && (
+        <span className="text-xs text-muted-foreground">+{extra}</span>
+      )}
+    </div>
+  )
+}
+
+function ContentCarousel({
+  thumbnails,
+  influencerId,
+}: {
+  thumbnails: { url: string; title: string }[]
+  influencerId: string
+}) {
+  const [idx, setIdx] = useState(0)
+  const items = thumbnails.length >= 2 ? thumbnails : [
+    ...thumbnails,
+    ...(thumbnails.length ? [thumbnails[0]] : []),
+  ]
+  const canPrev = items.length > 2 && idx > 0
+  const canNext = items.length > 2 && idx < items.length - 2
+
+  const visible = items.slice(idx, idx + 2)
+
+  return (
+    <div className="relative flex items-center gap-5 w-full min-w-0">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setIdx((i) => Math.max(0, i - 1))
+        }}
+        className={cn(
+          "absolute left-0 z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/50 text-white transition-opacity",
+          canPrev ? "opacity-100 hover:bg-black/70" : "pointer-events-none opacity-30"
+        )}
+        aria-label="이전"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+
+      <div className="flex-1 flex gap-5 min-w-0 overflow-hidden">
+        {visible.map((item, i) => (
+          <div
+            key={`${item.url}-${i}`}
+            className="flex-1 min-w-[120px] group/card"
+          >
+            <div className="relative w-full overflow-hidden rounded-xl bg-muted">
+              <div
+                className="relative w-full"
+                style={{ aspectRatio: "9 / 15.68", minHeight: 160 }}
+              >
+                <Image
+                  src={item.url}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 768px) 50vw, 200px"
+                  className="object-cover transition-transform group-hover/card:scale-105"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-white/30 flex items-center justify-center">
+                    <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+                  </div>
+                </div>
+              </div>
+              <p className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-white text-base font-medium truncate">
+                {item.title}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setIdx((i) => Math.min(items.length - 2, i + 1))
+        }}
+        className={cn(
+          "absolute right-0 z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/50 text-white transition-opacity",
+          canNext ? "opacity-100 hover:bg-black/70" : "pointer-events-none opacity-30"
+        )}
+        aria-label="다음"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+    </div>
+  )
+}
+
+function InfluencerCard({ influencer }: { influencer: InfluencerItem }) {
+  const followerRange = formatFollowerRange(influencer.followerCount)
+  const platforms = influencer.platforms ?? []
+  const thumbnails = influencer.contentThumbnails ?? (influencer.coverImageUrl
+    ? [{ url: influencer.coverImageUrl, title: influencer.name }]
+    : [])
+
+  const tags = influencer.category.split(/[·,]/).map((t) => t.trim()).filter(Boolean)
+
+  return (
+    <Link href={`/influencers/${influencer.id}`} className="block">
       <article
-        className="group relative bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/50 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20 transition-all duration-200 ease-out"
+        className="group flex flex-col md:flex-row rounded-2xl overflow-hidden border border-border bg-card hover:border-primary/50 hover:shadow-xl transition-all duration-200"
         tabIndex={0}
       >
-        {/* 커버 이미지 */}
-        <div className="relative h-32 w-full overflow-hidden">
-          {influencer.coverImageUrl ? (
-            <Image
-              src={influencer.coverImageUrl}
-              alt={influencer.name}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
-
-          {/* 북마크 (우상단) */}
-          <button
-            type="button"
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors z-10"
-            aria-label="즐겨찾기"
-            onClick={(e) => e.preventDefault()}
-          >
-            <Heart className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* 프로필 */}
-        <div className="relative px-4 pb-4">
-          <div className="absolute -top-8 left-4">
-            <div className="relative h-16 w-16 rounded-full border-4 border-card overflow-hidden">
+        {/* 좌측: 프로필 */}
+        <div className="md:w-72 shrink-0 p-6 flex flex-col bg-muted/30 md:bg-muted/20">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
+            <div className="relative h-20 w-20 rounded-full overflow-hidden shrink-0">
               <Image
                 src={influencer.profileImageUrl}
                 alt={influencer.name}
                 fill
-                sizes="64px"
+                sizes="80px"
                 className="object-cover"
               />
             </div>
-          </div>
-
-          <div className="pt-10">
-            <h3 className="text-base font-semibold text-foreground">{influencer.name}</h3>
+            <h3 className="mt-3 text-lg font-bold text-foreground">{influencer.name}</h3>
             <p className="text-sm text-primary">{influencer.handle}</p>
 
-            <div className="inline-block mt-2 px-2 py-1 text-xs bg-muted rounded-full text-muted-foreground">
-              {influencer.category}
-            </div>
-
-            {/* 통계 */}
-            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border">
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            {followerRange != null && (
+              <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
                 <Users className="w-4 h-4 shrink-0" />
-                <span>{followerDisplay}</span>
+                <span>{followerRange} 팔로워</span>
               </div>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <ImageIcon className="w-4 h-4 shrink-0" />
-                <span>{influencer.contentCount}개</span>
-              </div>
-              {influencer.rating !== null ? (
-                <div className="flex items-center gap-1 text-sm">
-                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 shrink-0" />
-                  <span className="text-foreground font-medium">{influencer.rating}</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Star className="w-4 h-4 shrink-0" />
-                  <span>—</span>
-                </div>
-              )}
+            )}
+
+            {influencer.bio && (
+              <p className="mt-3 text-sm text-muted-foreground line-clamp-2">
+                {influencer.bio}
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
+              {tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="px-2.5 py-1 text-xs rounded-full bg-muted text-muted-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
 
-            {/* CTA */}
-            <div className="flex items-center justify-center gap-1 w-full mt-3 py-2 rounded-md border border-border text-sm font-medium text-foreground group-hover:border-primary/50 transition-colors">
-              프로필 보기
-              <ArrowRight className="w-4 h-4" />
+            {platforms.length > 0 && (
+              <div className="mt-4">
+                <PlatformIcons platforms={platforms} />
+              </div>
+            )}
+
+            <div className="mt-4 w-full">
+              <span className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-background border border-border text-sm font-medium text-foreground group-hover:border-primary/50 transition-colors">
+                프로필 보기
+                <ArrowRight className="w-4 h-4" />
+              </span>
             </div>
           </div>
+        </div>
+
+        {/* 우측: 콘텐츠 캐러셀 */}
+        <div className="flex-1 min-w-0 p-6 flex items-center min-h-[240px] overflow-hidden">
+          {thumbnails.length > 0 ? (
+            <ContentCarousel thumbnails={thumbnails} influencerId={influencer.id} />
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+              등록된 콘텐츠가 없습니다
+            </div>
+          )}
         </div>
       </article>
     </Link>
@@ -450,7 +548,7 @@ export default function InfluencersPage() {
             <EmptyState onReset={resetFilters} />
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 {displayed.map((influencer) => (
                   <InfluencerCard key={influencer.id} influencer={influencer} />
                 ))}

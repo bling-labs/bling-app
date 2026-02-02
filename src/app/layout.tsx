@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Geist_Mono } from "next/font/google"
+import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -16,8 +17,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ko">
-      <body className="font-sans antialiased">{children}</body>
+    <html lang="ko" suppressHydrationWarning>
+      <body className="font-sans antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   )
 }

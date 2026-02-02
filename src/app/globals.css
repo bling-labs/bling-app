@@ -40,6 +40,22 @@
   --sidebar-ring: var(--ring);
 }
 
+.light {
+  --background: #ffffff;
+  --foreground: #0a0a0f;
+  --card: #f8fafc;
+  --card-foreground: #0a0a0f;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0f;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+  --input: #f1f5f9;
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+}
+
 @theme inline {
   --font-sans: 'Pretendard Variable', 'Pretendard', 'Geist', sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';

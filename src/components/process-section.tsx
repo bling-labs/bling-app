@@ -11,7 +11,6 @@ import {
   Settings,
   Wallet,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 const advertiserSteps = [
   {
@@ -90,23 +89,21 @@ export function ProcessSection() {
           <div className="inline-flex p-1 bg-muted rounded-xl">
             <button
               onClick={() => setActiveTab("advertiser")}
-              className={cn(
-                "px-6 py-3 rounded-lg text-sm font-medium transition-all",
+              className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === "advertiser"
                   ? "bg-primary text-primary-foreground shadow-lg"
                   : "text-muted-foreground hover:text-foreground"
-              )}
+              }`}
             >
               광고주
             </button>
             <button
               onClick={() => setActiveTab("influencer")}
-              className={cn(
-                "px-6 py-3 rounded-lg text-sm font-medium transition-all",
+              className={`px-6 py-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === "influencer"
                   ? "bg-secondary text-secondary-foreground shadow-lg"
                   : "text-muted-foreground hover:text-foreground"
-              )}
+              }`}
             >
               인플루언서
             </button>
@@ -127,13 +124,10 @@ export function ProcessSection() {
               const textColor = step.color === "accent" ? "text-accent" : "text-secondary"
 
               return (
-                <div key={step.title} className="relative flex gap-6 group">
+                <div key={index} className="relative flex gap-6 group">
                   {/* Icon Circle */}
                   <div
-                    className={cn(
-                      "relative z-10 flex items-center justify-center w-12 h-12 rounded-full shrink-0 group-hover:scale-110 transition-transform",
-                      colorClass
-                    )}
+                    className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full ${colorClass} shrink-0 group-hover:scale-110 transition-transform`}
                   >
                     <Icon className="w-5 h-5 text-white" />
                   </div>
@@ -142,7 +136,7 @@ export function ProcessSection() {
                   <div className="flex-1 pb-8">
                     <div className="p-6 rounded-2xl bg-card border border-border group-hover:border-secondary/30 transition-all">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className={cn("text-xs font-bold", textColor)}>
+                        <span className={`text-xs font-bold ${textColor}`}>
                           STEP {index + 1}
                         </span>
                         {isLast && (

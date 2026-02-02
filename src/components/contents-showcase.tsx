@@ -1,11 +1,8 @@
 "use client"
 
-import Image from "next/image"
-import Link from "next/link"
 import { useState } from "react"
 import { ArrowRight, Play, Eye, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 
 const categories = ["전체", "뷰티", "패션", "푸드", "피트니스", "여행", "테크"]
 
@@ -73,11 +70,9 @@ export function ContentsShowcase() {
               지금 바로 라이센스 구매가 가능한 트렌디한 영상 콘텐츠
             </p>
           </div>
-          <Button asChild variant="ghost" className="text-primary hover:text-primary/90 group self-start sm:self-auto">
-            <Link href="/contents">
-              전체 보기
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Link>
+          <Button variant="ghost" className="text-primary hover:text-primary/90 group self-start sm:self-auto">
+            전체 보기
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
 
@@ -87,12 +82,11 @@ export function ContentsShowcase() {
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all",
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 activeCategory === category
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-              )}
+              }`}
             >
               {category}
             </button>
@@ -101,8 +95,8 @@ export function ContentsShowcase() {
 
         {/* Content Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredContents.map((content) => (
-            <ContentCard key={content.creator} content={content} />
+          {filteredContents.map((content, index) => (
+            <ContentCard key={index} content={content} />
           ))}
         </div>
 
@@ -122,12 +116,10 @@ function ContentCard({ content }: { content: (typeof contents)[0] }) {
     <div className="group relative bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all">
       {/* Thumbnail */}
       <div className="relative aspect-[3/4] overflow-hidden">
-        <Image
+        <img
           src={content.image || "/placeholder.svg"}
           alt={content.title}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 

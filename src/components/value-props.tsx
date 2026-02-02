@@ -1,4 +1,5 @@
-import Link from "next/link"
+"use client"
+
 import { ArrowRight, Check, Briefcase, Palette } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -42,8 +43,8 @@ export function ValueProps() {
 
             {/* Benefits */}
             <ul className="space-y-3 mb-8">
-              {advertiserBenefits.map((benefit) => (
-                <li key={benefit} className="flex items-start gap-3">
+              {advertiserBenefits.map((benefit, index) => (
+                <li key={index} className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                   <span className="text-sm text-muted-foreground">{benefit}</span>
                 </li>
@@ -51,11 +52,9 @@ export function ValueProps() {
             </ul>
 
             {/* CTA */}
-            <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground group/btn">
-              <Link href="/contents">
-                콘텐츠 둘러보기
-                <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-              </Link>
+            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground group/btn">
+              콘텐츠 둘러보기
+              <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
             </Button>
           </div>
 
@@ -76,8 +75,8 @@ export function ValueProps() {
 
             {/* Benefits */}
             <ul className="space-y-3 mb-8">
-              {influencerBenefits.map((benefit) => (
-                <li key={benefit} className="flex items-start gap-3">
+              {influencerBenefits.map((benefit, index) => (
+                <li key={index} className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
                   <span className="text-sm text-muted-foreground">{benefit}</span>
                 </li>

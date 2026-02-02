@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Sparkles } from "lucide-react"
 
@@ -53,8 +55,8 @@ export function Footer() {
             <div key={key}>
               <h4 className="font-semibold text-foreground mb-4">{section.title}</h4>
               <ul className="space-y-3">
-                {section.links.map((link) => (
-                  <li key={link.label}>
+                {section.links.map((link, index) => (
+                  <li key={index}>
                     <Link
                       href={link.href}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"

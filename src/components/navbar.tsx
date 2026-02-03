@@ -18,7 +18,7 @@ function useHasMounted() {
 
 const NAV_LINKS = [
   { href: "/contents", label: "콘텐츠" },
-  { href: "/contest", label: "컨테스트" },
+  { href: "/contests", label: "컨테스트" },
   { href: "/influencers", label: "인플루언서" },
 ] as const
 

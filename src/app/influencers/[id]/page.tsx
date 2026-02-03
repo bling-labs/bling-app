@@ -1,17 +1,26 @@
+import { notFound } from "next/navigation"
 import Link from "next/link"
+import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
+import { InfluencerDetailClient } from "./detail-client"
+import { getInfluencerDetail } from "@/data/influencer-detail"
 
 export default async function InfluencerDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
-  await params
+  const { id } = await params
+  const detail = getInfluencerDetail(id)
+  if (!detail) notFound()
+
   return (
-    <main className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-8">
-      <p className="text-muted-foreground">인플루언서 상세 페이지 (추후 구현)</p>
-      <Link href="/influencers" className="text-primary hover:underline">
-        인플루언서 목록으로 돌아가기
-      </Link>
+    <main className="min-h-screen bg-background">
+      <Navbar />
+      <div className="pt-16">
+        <InfluencerDetailClient detail={detail} />
+      </div>
+      <Footer />
     </main>
   )
 }

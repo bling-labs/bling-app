@@ -29,8 +29,14 @@ export interface BlingContentItem {
   /** 라이센스 가격 (숫자=원, "협의"=금액 협의 필요) */
   licensePrice: number | "협의"
   viewCount?: number
+  likeCount?: number
+  category?: string
   /** 2차저작 허용: 1=불가, 2=일부, 3=자유 */
   secondaryCreation?: SecondaryCreationStatus
+  /** 의뢰 최소 가격 */
+  commissionPriceMin?: number
+  /** 의뢰 최대 가격 (없으면 "~부터") */
+  commissionPriceMax?: number
 }
 
 export interface LicensingRule {
@@ -124,7 +130,11 @@ const DETAIL_DATA: Record<string, InfluencerDetailData> = {
         description: "아침 루틴 스킨케어 팁. 클렌징부터 수분크림까지 5분 완성.",
         licensePrice: 350000,
         viewCount: 52000,
+        likeCount: 3200,
+        category: "뷰티",
         secondaryCreation: 3,
+        commissionPriceMin: 1500000,
+        commissionPriceMax: 3000000,
       },
       {
         id: "c2",
@@ -134,7 +144,11 @@ const DETAIL_DATA: Record<string, InfluencerDetailData> = {
         description: "시즌 메이크업 룩북. 다양한 컬러 조합을 담았습니다.",
         licensePrice: 400000,
         viewCount: 48000,
+        likeCount: 2800,
+        category: "뷰티",
         secondaryCreation: 2,
+        commissionPriceMin: 2000000,
+        commissionPriceMax: 4000000,
       },
       {
         id: "c3",
@@ -144,7 +158,10 @@ const DETAIL_DATA: Record<string, InfluencerDetailData> = {
         description: "듀얼 클렌징 올바른 순서와 시간.",
         licensePrice: 280000,
         viewCount: 35000,
+        likeCount: 1900,
+        category: "뷰티",
         secondaryCreation: 3,
+        commissionPriceMin: 1000000,
       },
       {
         id: "c4",
@@ -154,7 +171,11 @@ const DETAIL_DATA: Record<string, InfluencerDetailData> = {
         description: "립 제품 솔직 리뷰.",
         licensePrice: 200000,
         viewCount: 28000,
+        likeCount: 1500,
+        category: "뷰티",
         secondaryCreation: 1,
+        commissionPriceMin: 800000,
+        commissionPriceMax: 1500000,
       },
       {
         id: "c5",
@@ -165,7 +186,11 @@ const DETAIL_DATA: Record<string, InfluencerDetailData> = {
         description: "바이탈 세럼 5종 핵심 비교.",
         licensePrice: 320000,
         viewCount: 41000,
+        likeCount: 2400,
+        category: "뷰티",
         secondaryCreation: 2,
+        commissionPriceMin: 1200000,
+        commissionPriceMax: 2500000,
       },
       {
         id: "c6",
@@ -175,7 +200,10 @@ const DETAIL_DATA: Record<string, InfluencerDetailData> = {
         description: "아이 메이크업 팁.",
         licensePrice: 380000,
         viewCount: 36000,
+        likeCount: 2100,
+        category: "뷰티",
         secondaryCreation: 3,
+        commissionPriceMin: 1500000,
       },
     ],
     secondaryContents: [
@@ -219,6 +247,11 @@ const DETAIL_DATA: Record<string, InfluencerDetailData> = {
         title: "홈트 10분 루틴",
         description: "바쁜 아침, 10분 홈트레이닝으로 기상 활성화.",
         licensePrice: 250000,
+        viewCount: 31000,
+        likeCount: 1800,
+        category: "피트니스",
+        commissionPriceMin: 800000,
+        commissionPriceMax: 1500000,
       },
       {
         id: "c8",
@@ -228,6 +261,10 @@ const DETAIL_DATA: Record<string, InfluencerDetailData> = {
         title: "스트레칭 기초",
         description: "운동 전후 필수 스트레칭 5동작.",
         licensePrice: "협의",
+        viewCount: 22000,
+        likeCount: 1200,
+        category: "피트니스",
+        commissionPriceMin: 600000,
       },
       {
         id: "c9",
@@ -236,6 +273,11 @@ const DETAIL_DATA: Record<string, InfluencerDetailData> = {
         title: "식단 관리 팁",
         description: "프로틴 밀크쉐이크 레시피.",
         licensePrice: 120000,
+        viewCount: 15000,
+        likeCount: 900,
+        category: "피트니스",
+        commissionPriceMin: 500000,
+        commissionPriceMax: 1000000,
       },
     ],
     secondaryContents: [],

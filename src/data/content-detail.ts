@@ -3,7 +3,7 @@
  */
 
 import { getInfluencerDetail } from "./influencer-detail"
-import type { BlingContentItem, SecondaryCreationStatus } from "./influencer-detail"
+import type { BlingContentItem, SecondaryCreationStatus, InfluencerDetailData } from "./influencer-detail"
 
 export interface ExternalLink {
   platform: string
@@ -13,17 +13,24 @@ export interface ExternalLink {
 export interface LicensePriceOption {
   duration: string
   price: number
+  discountPrice?: number
+  isRecommended?: boolean
 }
 
 export interface ContentDetailData extends BlingContentItem {
   influencerId: string
   influencerName: string
   influencerHandle: string
+  influencerProfileImageUrl: string
+  influencerCategory: string
+  influencerFollowerSummary: string
   externalLinks?: ExternalLink[]
   /** 기간별 라이센싱 가격 (없으면 licensePrice 사용) */
   licensePrices?: LicensePriceOption[]
   /** 구매 전 유의사항 */
   precautions?: string[]
+  /** 같은 크리에이터의 다른 콘텐츠 */
+  creatorOtherContents?: BlingContentItem[]
 }
 
 const CONTENT_EXTENSIONS: Record<string, Partial<ContentDetailData>> = {
@@ -34,9 +41,10 @@ const CONTENT_EXTENSIONS: Record<string, Partial<ContentDetailData>> = {
       { platform: "TikTok", url: "https://tiktok.com/@beauty_kim" },
     ],
     licensePrices: [
-      { duration: "1개월", price: 350000 },
-      { duration: "3개월", price: 525000 },
-      { duration: "6개월", price: 700000 },
+      { duration: "1개월", price: 200000 },
+      { duration: "3개월", price: 350000, isRecommended: true },
+      { duration: "6개월", price: 500000, discountPrice: 425000 },
+      { duration: "영구", price: 0 },
     ],
     precautions: [
       "라이센싱 구매 후 해당 기간 동안 상업적 목적으로 사용 가능합니다.",
@@ -48,7 +56,7 @@ const CONTENT_EXTENSIONS: Record<string, Partial<ContentDetailData>> = {
   c2: {
     licensePrices: [
       { duration: "1개월", price: 400000 },
-      { duration: "3개월", price: 600000 },
+      { duration: "3개월", price: 600000, isRecommended: true, discountPrice: 510000 },
       { duration: "6개월", price: 800000 },
     ],
     precautions: [
@@ -79,9 +87,16 @@ export function getContentDetail(contentId: string): ContentDetailData | null {
   return null
 }
 
+function buildFollowerSummary(influencer: InfluencerDetailData): string {
+  const followers = influencer.platformFollowers
+  if (!followers || followers.length === 0) return ""
+  // Use the largest follower range as summary
+  return `${followers[0].range} 팔로워`
+}
+
 function mergeContentDetail(
   content: BlingContentItem,
-  influencer: { id: string; name: string; handle: string; socialLinks: { platform: string; url: string }[] },
+  influencer: InfluencerDetailData,
   contentId: string
 ): ContentDetailData {
   const ext = CONTENT_EXTENSIONS[contentId] ?? {}
@@ -92,6 +107,9 @@ function mergeContentDetail(
     influencerId: influencer.id,
     influencerName: influencer.name,
     influencerHandle: influencer.handle,
+    influencerProfileImageUrl: influencer.profileImageUrl,
+    influencerCategory: influencer.category,
+    influencerFollowerSummary: buildFollowerSummary(influencer),
     externalLinks: ext.externalLinks ?? influencer.socialLinks.slice(0, 2).map((s) => ({
       platform: s.platform.charAt(0).toUpperCase() + s.platform.slice(1),
       url: s.url,
@@ -100,6 +118,7 @@ function mergeContentDetail(
       { duration: "1개월", price: content.licensePrice as number },
     ] : undefined),
     precautions: ext.precautions ?? DEFAULT_PRECAUTIONS,
+    creatorOtherContents: influencer.blingContents.filter((c) => c.id !== contentId),
   }
 }
 

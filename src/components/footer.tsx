@@ -8,6 +8,7 @@ const footerLinks = {
     title: "플랫폼",
     links: [
       { label: "콘텐츠 탐색", href: "#" },
+      { label: "캠페인", href: "/campaigns" },
       { label: "인플루언서", href: "#" },
       { label: "가격 정책", href: "#" },
       { label: "이용약관", href: "#" },

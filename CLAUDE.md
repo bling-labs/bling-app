@@ -4,19 +4,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-- `npm run dev` - Start Next.js development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+- `pnpm dev` - Start all apps in dev mode (via Turborepo)
+- `pnpm build` - Build all apps and packages
+- `pnpm lint` - Lint all apps and packages
+- `pnpm dev --filter=@bling/web` - Start only the web app
 
 No test framework is configured.
 
 ## Architecture
 
-Next.js 16 app using the App Router with React 19 and TypeScript. The React Compiler (`reactCompiler: true` in next.config.ts) is enabled for automatic optimizations.
+Turborepo monorepo with pnpm workspaces.
 
-**Styling:** Tailwind CSS 4 (via `@tailwindcss/postcss`). Theme tokens are defined as CSS custom properties in `src/app/globals.css` with dark mode support.
+### Apps
+- `apps/web` (`@bling/web`) - Next.js 16 app using App Router with React 19 and TypeScript. React Compiler (`reactCompiler: true`) is enabled.
 
-**Component system:** Shadcn/ui is configured (`components.json`) with the `cn()` utility in `src/lib/utils.ts` for className merging (clsx + tailwind-merge). New shadcn components install to `src/components/ui/` with the `@/` path alias mapping to `./src/*`.
+### Packages
+- `packages/ui` (`@bling/ui`) - Shared shadcn/ui components and `cn()` utility. Shipped as TypeScript source (not pre-compiled). Apps transpile via `transpilePackages`.
+- `packages/typescript-config` (`@bling/typescript-config`) - Shared TypeScript base configurations.
+
+**Styling:** Tailwind CSS 4 (via `@tailwindcss/postcss`). Theme tokens are defined as CSS custom properties in `apps/web/src/app/globals.css` with dark mode support.
+
+**Component system:** Shadcn/ui components live in `packages/ui/`. The `cn()` utility is in `@bling/ui` and re-exported from `apps/web/src/lib/utils.ts` for backward compatibility. App code imports UI components from `@bling/ui`.
+
+**Adding a new shadcn component:**
+```bash
+cd packages/ui && npx shadcn@latest add <component-name>
+# Then:
+# 1. Change `@/lib/utils` imports to `../lib/utils` (relative)
+# 2. Change any `@/components/*` imports to relative (e.g., `./button`)
+# 3. Export it from packages/ui/src/index.ts
+```
 
 **ESLint:** v9 flat config with Next.js core-web-vitals and TypeScript rules.

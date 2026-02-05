@@ -8,57 +8,137 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ===== ENUMS =====
 enum UserType {
   guest
   influencer
   advertiser
+  admin
 }
 
-model Profile {
-  id            String    @id @db.Uuid
+enum Gender {
+  male
+  female
+  other
+}
+
+// ===== 기본 유저 테이블 =====
+model User {
+  id            String    @id @db.Uuid // = auth.users.id
   email         String?
   userType      UserType  @default(guest) @map("user_type")
   isOnboarded   Boolean   @default(false) @map("is_onboarded")
   agreedTermsAt DateTime? @map("agreed_terms_at") @db.Timestamptz
 
-  // 공통
-  fullName  String? @map("full_name")
-  phone     String?
-  avatarUrl String? @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
-  // 인플루언서 전용
-  nickname   String?
-  gender     String?
-  birthDate  DateTime? @map("birth_date") @db.Date
+  // 1:1 관계
+  influencer Influencer?
+  advertiser Advertiser?
+
+  @@map("users")
+}
+
+// ===== 인플루언서 =====
+model Influencer {
+  id   String @id @db.Uuid // = user.id
+  user User   @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  // 기본 정보
+  fullName  String   @map("full_name")
+  nickname  String
+  phone     String
+  gender    Gender
+  birthDate DateTime @map("birth_date") @db.Date
+  avatarUrl String?  @map("avatar_url")
+  bio       String?
+
+  // 카테고리 (복수 선택)
   categories String[]
-  bio        String?
 
-  // 광고주 전용
-  companyName        String? @map("company_name")
-  companyUrl         String? @map("company_url")
-  businessCategory   String? @map("business_category")
-  jobTitle           String? @map("job_title")
-  businessLicenseUrl String? @map("business_license_url")
-  companyDescription String? @map("company_description")
+  // 티어 시스템
+  tierId String         @map("tier_id") @db.Uuid
+  tier   InfluencerTier @relation(fields: [tierId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
+  // 관계
   snsChannels SnsChannel[]
 
-  @@map("profiles")
+  @@map("influencers")
 }
 
-model SnsChannel {
-  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  profileId     String  @map("profile_id") @db.Uuid
-  platform      String
-  channelUrl    String  @map("channel_url")
-  followerCount Int?    @map("follower_count")
+// ===== 인플루언서 티어 =====
+model InfluencerTier {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String  @unique // Bronze, Silver, Gold, Platinum, Diamond
+  level       Int     @unique // 1, 2, 3, 4, 5 (정렬/비교용)
+  description String?
+
+  // 티어별 기본 혜택
+  settlementRate Decimal @map("settlement_rate") @db.Decimal(5, 4) // 정산률 (0.7000 = 70%)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  influencers Influencer[]
+  benefits    TierBenefit[]
+
+  @@map("influencer_tiers")
+}
+
+// ===== 티어 혜택 (확장용) =====
+model TierBenefit {
+  id     String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tierId String         @map("tier_id") @db.Uuid
+  tier   InfluencerTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+
+  benefitType String  @map("benefit_type") // settlement_rate, priority_matching, badge, etc.
+  value       String // JSON 또는 단순 값
+  description String?
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  @@unique([tierId, benefitType])
+  @@map("tier_benefits")
+}
+
+// ===== SNS 채널 =====
+model SnsChannel {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  influencerId String     @map("influencer_id") @db.Uuid
+  influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  platform      String // youtube, instagram, tiktok, blog
+  channelUrl    String @map("channel_url")
+  followerCount Int?   @map("follower_count")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   @@map("sns_channels")
+}
+
+// ===== 광고주 =====
+model Advertiser {
+  id   String @id @db.Uuid // = user.id
+  user User   @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  // 회사 정보
+  companyName        String  @map("company_name")
+  businessCategory   String  @map("business_category")
+  companyUrl         String? @map("company_url")
+  companyDescription String? @map("company_description")
+  businessLicenseUrl String? @map("business_license_url")
+
+  // 담당자 정보
+  contactName  String  @map("contact_name")
+  contactPhone String  @map("contact_phone")
+  jobTitle     String? @map("job_title")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("advertisers")
 }

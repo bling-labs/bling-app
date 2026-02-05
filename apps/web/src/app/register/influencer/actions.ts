@@ -1,7 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { prisma } from "@bling/database"
+import { prisma, type Gender } from "@bling/database"
 
 interface RegisterInfluencerInput {
   fullName: string
@@ -29,33 +29,48 @@ export async function registerInfluencer(data: RegisterInfluencerInput) {
   }
 
   try {
+    // 기본 티어(Bronze) 가져오기
+    const defaultTier = await prisma.influencerTier.findFirst({
+      where: { level: 1 },
+      select: { id: true },
+    })
+
+    if (!defaultTier) {
+      return { error: "티어 정보를 찾을 수 없습니다" }
+    }
+
     await prisma.$transaction(async (tx) => {
-      // 프로필 업데이트
-      await tx.profile.update({
+      // User 테이블 업데이트
+      await tx.user.update({
         where: { id: user.id },
         data: {
           userType: "influencer",
-          fullName: data.fullName,
-          nickname: data.nickname,
-          phone: data.phone,
-          gender: data.gender,
-          birthDate: new Date(data.birthDate),
-          categories: data.categories,
-          bio: data.bio || null,
           isOnboarded: true,
         },
       })
 
-      // SNS 채널 등록
-      await tx.snsChannel.createMany({
-        data: data.snsChannels.map((ch) => ({
-          profileId: user.id,
-          platform: ch.platform,
-          channelUrl: ch.channelUrl,
-          followerCount: ch.followerCount
-            ? parseInt(ch.followerCount, 10)
-            : null,
-        })),
+      // Influencer 레코드 생성
+      await tx.influencer.create({
+        data: {
+          id: user.id,
+          fullName: data.fullName,
+          nickname: data.nickname,
+          phone: data.phone,
+          gender: data.gender as Gender,
+          birthDate: new Date(data.birthDate),
+          categories: data.categories,
+          bio: data.bio || null,
+          tierId: defaultTier.id,
+          snsChannels: {
+            create: data.snsChannels.map((ch) => ({
+              platform: ch.platform,
+              channelUrl: ch.channelUrl,
+              followerCount: ch.followerCount
+                ? parseInt(ch.followerCount, 10)
+                : null,
+            })),
+          },
+        },
       })
     })
 

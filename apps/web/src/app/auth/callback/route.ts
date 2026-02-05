@@ -12,18 +12,30 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      // 최초 가입 여부 확인: is_onboarded가 false면 welcome 페이지로
       const {
         data: { user },
       } = await supabase.auth.getUser()
 
       if (user) {
-        const profile = await prisma.profile.findUnique({
+        // User 레코드가 없으면 생성
+        let dbUser = await prisma.user.findUnique({
           where: { id: user.id },
           select: { isOnboarded: true },
         })
 
-        if (profile && !profile.isOnboarded) {
+        if (!dbUser) {
+          dbUser = await prisma.user.create({
+            data: {
+              id: user.id,
+              email: user.email,
+              isOnboarded: false,
+            },
+            select: { isOnboarded: true },
+          })
+        }
+
+        // 온보딩 안됐으면 welcome 페이지로
+        if (!dbUser.isOnboarded) {
           return NextResponse.redirect(`${origin}/auth/welcome`)
         }
       }

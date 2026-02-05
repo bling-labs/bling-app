@@ -25,20 +25,30 @@ export async function registerAdvertiser(data: RegisterAdvertiserInput) {
   }
 
   try {
-    await prisma.profile.update({
-      where: { id: user.id },
-      data: {
-        userType: "advertiser",
-        fullName: data.contactName,
-        phone: data.contactPhone,
-        companyName: data.companyName,
-        jobTitle: data.jobTitle || null,
-        businessCategory: data.businessCategory,
-        companyUrl: data.companyUrl || null,
-        businessLicenseUrl: data.businessLicenseUrl,
-        companyDescription: data.companyDescription || null,
-        isOnboarded: true,
-      },
+    await prisma.$transaction(async (tx) => {
+      // User 테이블 업데이트
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          userType: "advertiser",
+          isOnboarded: true,
+        },
+      })
+
+      // Advertiser 레코드 생성
+      await tx.advertiser.create({
+        data: {
+          id: user.id,
+          companyName: data.companyName,
+          businessCategory: data.businessCategory,
+          companyUrl: data.companyUrl || null,
+          companyDescription: data.companyDescription || null,
+          businessLicenseUrl: data.businessLicenseUrl,
+          contactName: data.contactName,
+          contactPhone: data.contactPhone,
+          jobTitle: data.jobTitle || null,
+        },
+      })
     })
 
     return { error: null }

@@ -15,12 +15,12 @@ export default async function WelcomePage() {
   }
 
   // 이미 온보딩 완료한 유저는 홈으로
-  const profile = await prisma.profile.findUnique({
+  const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
     select: { isOnboarded: true },
   })
 
-  if (profile?.isOnboarded) {
+  if (dbUser?.isOnboarded) {
     redirect("/")
   }
 
@@ -35,9 +35,7 @@ export default async function WelcomePage() {
         </div>
 
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold">
-            환영합니다!
-          </h1>
+          <h1 className="text-3xl font-bold">환영합니다!</h1>
           <p className="text-muted-foreground text-lg">
             Bling에 가입해주셔서 감사합니다.
             <br />
@@ -103,7 +101,7 @@ function SkipOnboardingButton() {
           data: { user },
         } = await supabase.auth.getUser()
         if (user) {
-          await prisma.profile.update({
+          await prisma.user.update({
             where: { id: user.id },
             data: { isOnboarded: true },
           })

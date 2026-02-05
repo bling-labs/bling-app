@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserType {
+  guest
+  influencer
+  advertiser
+}
+
+model Profile {
+  id            String    @id @db.Uuid
+  email         String?
+  userType      UserType  @default(guest) @map("user_type")
+  isOnboarded   Boolean   @default(false) @map("is_onboarded")
+  agreedTermsAt DateTime? @map("agreed_terms_at") @db.Timestamptz
+
+  // 공통
+  fullName  String? @map("full_name")
+  phone     String?
+  avatarUrl String? @map("avatar_url")
+
+  // 인플루언서 전용
+  nickname   String?
+  gender     String?
+  birthDate  DateTime? @map("birth_date") @db.Date
+  categories String[]
+  bio        String?
+
+  // 광고주 전용
+  companyName        String? @map("company_name")
+  companyUrl         String? @map("company_url")
+  businessCategory   String? @map("business_category")
+  jobTitle           String? @map("job_title")
+  businessLicenseUrl String? @map("business_license_url")
+  companyDescription String? @map("company_description")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  snsChannels SnsChannel[]
+
+  @@map("profiles")
+}
+
+model SnsChannel {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId     String  @map("profile_id") @db.Uuid
+  platform      String
+  channelUrl    String  @map("channel_url")
+  followerCount Int?    @map("follower_count")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("sns_channels")
+}

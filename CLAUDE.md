@@ -36,3 +36,7 @@ cd packages/ui && npx shadcn@latest add <component-name>
 ```
 
 **ESLint:** v9 flat config with Next.js core-web-vitals and TypeScript rules.
+
+## 개발 시 고려사항
+- 나중에 웹뷰로 패키징해서 웹뿐 아니라 앱까지 출시할 가능성도 있음.
+- apps 하위에 현재는 web프로젝트만 있는 creator 페이지, admin페이지, advertiser 페이지 각 프로젝트들이 같이 들어갈 예정. 

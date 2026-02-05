@@ -1,12 +1,14 @@
 "use client"
 
-import { useState, useSyncExternalStore } from "react"
+import { useState, useEffect, useSyncExternalStore } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
-import { Sparkles, Menu, X, Sun, Moon } from "lucide-react"
+import { Sparkles, Menu, X, Sun, Moon, LogOut, User } from "lucide-react"
 import { Button } from "@bling/ui"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 function useHasMounted() {
   return useSyncExternalStore(
@@ -25,9 +27,35 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const [user, setUser] = useState<SupabaseUser | null>(null)
   const mounted = useHasMounted()
   const pathname = usePathname()
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    setUser(null)
+    router.push("/")
+    router.refresh()
+  }
 
   const isActive = (href: string) => pathname.startsWith(href)
 
@@ -79,12 +107,37 @@ export function Navbar() {
             ) : (
               <div className="p-2 w-9 h-9" aria-hidden />
             )}
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-              로그인
-            </Button>
-            <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground">
-              회원가입
-            </Button>
+            {user ? (
+              <>
+                <Link href="/mypage">
+                  <Button variant="ghost" className="gap-2 text-muted-foreground hover:text-foreground">
+                    <User className="w-4 h-4" />
+                    마이페이지
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-4 h-4 mr-1" />
+                  로그아웃
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login">
+                  <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+                    로그인
+                  </Button>
+                </Link>
+                <Link href="/auth/signup">
+                  <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground">
+                    회원가입
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -136,12 +189,40 @@ export function Navbar() {
               ) : (
                 <div className="px-3 py-2 h-10" aria-hidden />
               )}
-              <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-                로그인
-              </Button>
-              <Button className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-                회원가입
-              </Button>
+              {user ? (
+                <>
+                  <Link href="/mypage" onClick={() => setIsOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground">
+                      <User className="w-4 h-4" />
+                      마이페이지
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 text-muted-foreground"
+                    onClick={() => {
+                      handleLogout()
+                      setIsOpen(false)
+                    }}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    로그아웃
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login" onClick={() => setIsOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-muted-foreground">
+                      로그인
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signup" onClick={() => setIsOpen(false)}>
+                    <Button className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground">
+                      회원가입
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

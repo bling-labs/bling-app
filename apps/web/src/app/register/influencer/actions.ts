@@ -88,7 +88,7 @@ export async function saveInfluencerBasicInfo(data: BasicInfoInput) {
             bio: data.bio || null,
             company: data.company || null,
             referralCode: data.referralCode || null,
-            registrationComplete: false,
+            status: "draft",
           },
         })
       } else {
@@ -106,7 +106,7 @@ export async function saveInfluencerBasicInfo(data: BasicInfoInput) {
             company: data.company || null,
             referralCode: data.referralCode || null,
             tierId: defaultTier.id,
-            registrationComplete: false,
+            status: "draft",
           },
         })
       }
@@ -162,7 +162,7 @@ export async function completeInfluencerRegistration(channels: SnsChannelInput[]
       })
       await tx.influencer.update({
         where: { id: user.id },
-        data: { registrationComplete: true },
+        data: { status: "active" },
       })
       await tx.user.update({
         where: { id: user.id },
@@ -208,8 +208,18 @@ export async function getInfluencerDraft(userId: string) {
       bio: true,
       company: true,
       referralCode: true,
-      registrationComplete: true,
+      status: true,
     },
   })
   return influencer
+}
+
+const REGISTRATION_GUIDE_KEY = "influencer_registration_guide"
+
+export async function getInfluencerRegistrationGuide(): Promise<string | null> {
+  const block = await prisma.contentBlock.findUnique({
+    where: { key: REGISTRATION_GUIDE_KEY },
+    select: { content: true },
+  })
+  return block?.content ?? null
 }

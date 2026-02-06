@@ -8,6 +8,8 @@ export type {
   TierBenefit,
   SnsChannel,
   SocialPlatform,
+  ContentBlock,
   UserType,
   Gender,
+  InfluencerStatus,
 } from "@prisma/client"

@@ -22,6 +22,14 @@ enum Gender {
   other
 }
 
+enum InfluencerStatus {
+  draft     // 등록 중
+  active    // 노출 중
+  rejected  // 거절됨
+  suspended // 위반 등으로 중지
+  hidden    // 휴식(노출 비활성화)
+}
+
 // ===== 기본 유저 테이블 =====
 model User {
   id            String    @id @db.Uuid // = auth.users.id
@@ -62,7 +70,7 @@ model Influencer {
   // 추가 필드
   company     String? @map("company")        // 소속회사 (선택)
   referralCode String? @map("referral_code") // 추천인코드 (선택)
-  registrationComplete Boolean @default(false) @map("registration_complete") // 등록 완료 여부
+  status      InfluencerStatus @default(draft) @map("status") // draft=등록중, active=노출, rejected/suspended/hidden=비노출
 
   // 티어 시스템
   tierId String         @map("tier_id") @db.Uuid
@@ -128,7 +136,7 @@ model SnsChannel {
   id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   influencerId String     @map("influencer_id") @db.Uuid
   influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
-
+  
   platform      String // youtube, instagram, tiktok, blog, x
   channelUrl    String @map("channel_url")
   followerCount Int?   @map("follower_count")
@@ -136,6 +144,17 @@ model SnsChannel {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   @@map("sns_channels")
+}
+
+// ===== 콘텐츠 블록 (안내사항 등, 관리자 웹에디터로 수정) =====
+model ContentBlock {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key       String   @unique // e.g. influencer_registration_guide
+  content   String   @db.Text // formatted HTML
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("content_blocks")
 }
 
 // ===== 광고주 =====

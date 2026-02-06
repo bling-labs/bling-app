@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { prisma } from "@bling/database"
 import { RegisterInfluencerForm } from "./register-influencer-form"
-import { getInfluencerDraft, getSocialPlatforms } from "./actions"
+import { getInfluencerDraft, getInfluencerRegistrationGuide, getSocialPlatforms } from "./actions"
 
 export default async function RegisterInfluencerPage() {
   const supabase = await createClient()
@@ -27,13 +27,14 @@ export default async function RegisterInfluencerPage() {
     redirect("/")
   }
 
-  const [draft, socialPlatforms] = await Promise.all([
+  const [draft, socialPlatforms, guideContent] = await Promise.all([
     getInfluencerDraft(user.id),
     getSocialPlatforms(),
+    getInfluencerRegistrationGuide(),
   ])
 
-  let initialStep: 1 | 2 = 1
-  if (draft?.registrationComplete === false) {
+  let initialStep: 0 | 1 | 2 = 0
+  if (draft?.status === "draft") {
     initialStep = 2
   }
 
@@ -41,6 +42,7 @@ export default async function RegisterInfluencerPage() {
     <RegisterInfluencerForm
       userEmail={user.email}
       initialStep={initialStep}
+      guideHtml={guideContent}
       socialPlatforms={socialPlatforms}
       draftBasicInfo={
         draft

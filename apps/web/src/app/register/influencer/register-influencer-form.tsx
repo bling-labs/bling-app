@@ -69,7 +69,8 @@ type SnsChannelsFormData = z.infer<typeof snsChannelsSchema>
 
 interface RegisterInfluencerFormProps {
   userEmail: string
-  initialStep: 1 | 2
+  initialStep: 0 | 1 | 2
+  guideHtml: string | null
   socialPlatforms: {
     defaultVisible: SocialPlatformOption[]
     rest: SocialPlatformOption[]
@@ -98,11 +99,12 @@ function formatBirthDateToYYMMDD(date: Date): string {
 export function RegisterInfluencerForm({
   userEmail,
   initialStep,
+  guideHtml,
   socialPlatforms,
   draftBasicInfo,
 }: RegisterInfluencerFormProps) {
   const router = useRouter()
-  const [step, setStep] = useState<1 | 2>(initialStep)
+  const [step, setStep] = useState<0 | 1 | 2>(initialStep)
   const [serverError, setServerError] = useState<string | null>(null)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     draftBasicInfo?.categories ?? []
@@ -215,6 +217,11 @@ export function RegisterInfluencerForm({
           {/* 좌측 사이드바 */}
           <aside className="w-48 shrink-0 space-y-2">
             <SidebarStep
+              title="안내사항"
+              status={step > 0 ? "complete" : step === 0 ? "active" : "pending"}
+              description={step > 0 ? "확인 완료" : "등록 전 안내"}
+            />
+            <SidebarStep
               title="기본 정보"
               status={isBasicInfoComplete ? "complete" : step === 1 ? "active" : "pending"}
               description={isBasicInfoComplete ? "입력 완료" : "필수 항목 입력"}
@@ -229,13 +236,44 @@ export function RegisterInfluencerForm({
           {/* 우측 폼 카드 */}
           <div className="flex-1 min-w-0">
             <div className="bg-card border border-border rounded-xl p-6">
-              {step === 1 ? (
+              {step === 0 ? (
                 <>
                   <div className="flex items-center gap-3 mb-6">
                     <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium">
                       인플루언서
                     </span>
-                    <h2 className="text-lg font-semibold">1/2 기본 정보</h2>
+                    <h2 className="text-lg font-semibold">안내사항</h2>
+                  </div>
+                  <div
+                    className="prose prose-sm dark:prose-invert max-wnone text-foreground [&_ul]:my-2 [&_p]:my-2 [&_h3]:mt-4 [&_h3]:mb-2"
+                    dangerouslySetInnerHTML={{
+                      __html: guideHtml ?? "<p>안내 내용이 없습니다. 확인을 눌러 진행해주세요.</p>",
+                    }}
+                  />
+                  <div className="flex gap-3 pt-6">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.back()}
+                    >
+                      ← 이전
+                    </Button>
+                    <Button
+                      type="button"
+                      className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                      onClick={() => setStep(1)}
+                    >
+                      확인
+                    </Button>
+                  </div>
+                </>
+              ) : step === 1 ? (
+                <>
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium">
+                      인플루언서
+                    </span>
+                    <h2 className="text-lg font-semibold">2/3 기본 정보</h2>
                     <Link
                       href="/auth/welcome"
                       className="ml-auto text-sm text-muted-foreground hover:text-foreground"
@@ -409,7 +447,7 @@ export function RegisterInfluencerForm({
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => router.back()}
+                        onClick={() => setStep(0)}
                       >
                         ← 이전
                       </Button>
@@ -433,7 +471,7 @@ export function RegisterInfluencerForm({
                     <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium">
                       인플루언서
                     </span>
-                    <h2 className="text-lg font-semibold">2/2 소셜 채널</h2>
+                    <h2 className="text-lg font-semibold">3/3 소셜 채널</h2>
                     <Link
                       href="/auth/welcome"
                       className="ml-auto text-sm text-muted-foreground hover:text-foreground"

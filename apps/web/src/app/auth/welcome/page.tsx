@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { Sparkles, User, Building2, ArrowRight } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { prisma } from "@bling/database"
+import { SignupProgress } from "@/components/auth/signup-progress"
 
 export default async function WelcomePage() {
   const supabase = await createClient()
@@ -33,6 +34,9 @@ export default async function WelcomePage() {
             <span className="text-2xl font-bold">Bling</span>
           </Link>
         </div>
+
+        {/* 프로그레스 UI */}
+        <SignupProgress currentStep={2} />
 
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold">환영합니다!</h1>

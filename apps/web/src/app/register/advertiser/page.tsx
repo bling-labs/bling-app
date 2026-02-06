@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client"
 import { registerAdvertiser } from "./actions"
 import { Button, Input, Label, Textarea } from "@bling/ui"
 import { Sparkles, Upload, X, Loader2 } from "lucide-react"
+import { SignupProgress } from "@/components/auth/signup-progress"
 
 const BUSINESS_CATEGORIES = [
   "뷰티/화장품",
@@ -132,6 +133,12 @@ export default function RegisterAdvertiserPage() {
             <Sparkles className="w-8 h-8 text-primary" />
             <span className="text-2xl font-bold">Bling</span>
           </Link>
+        </div>
+
+        {/* 프로그레스 UI */}
+        <SignupProgress currentStep={2} userType="advertiser" />
+
+        <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">광고주 등록</h1>
           <p className="text-muted-foreground">
             광고주 활동에 필요한 정보를 입력해주세요

@@ -46,16 +46,23 @@ model Influencer {
   user User   @relation(fields: [id], references: [id], onDelete: Cascade)
 
   // 기본 정보
-  fullName  String   @map("full_name")
-  nickname  String
-  phone     String
-  gender    Gender
-  birthDate DateTime @map("birth_date") @db.Date
-  avatarUrl String?  @map("avatar_url")
-  bio       String?
+  fullName     String   @map("full_name")
+  nickname     String
+  phone        String?  // 레거시 호환
+  mobilePhone  String?  @map("mobile_phone")  // 휴대폰번호 (선택)
+  landlinePhone String? @map("landline_phone") // 전화번호 (선택)
+  gender       Gender
+  birthDate    DateTime @map("birth_date") @db.Date
+  avatarUrl    String?  @map("avatar_url")
+  bio          String?
 
   // 카테고리 (복수 선택)
   categories String[]
+
+  // 추가 필드
+  company     String? @map("company")        // 소속회사 (선택)
+  referralCode String? @map("referral_code") // 추천인코드 (선택)
+  registrationComplete Boolean @default(false) @map("registration_complete") // 등록 완료 여부
 
   // 티어 시스템
   tierId String         @map("tier_id") @db.Uuid
@@ -105,13 +112,24 @@ model TierBenefit {
   @@map("tier_benefits")
 }
 
+// ===== 소셜 플랫폼 (기본 노출 여부 제어) =====
+model SocialPlatform {
+  id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code             String  @unique // youtube, instagram, tiktok, blog, x
+  label            String
+  isDefaultVisible Boolean @default(false) @map("is_default_visible")
+  sortOrder        Int     @map("sort_order")
+
+  @@map("social_platforms")
+}
+
 // ===== SNS 채널 =====
 model SnsChannel {
   id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   influencerId String     @map("influencer_id") @db.Uuid
   influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
 
-  platform      String // youtube, instagram, tiktok, blog
+  platform      String // youtube, instagram, tiktok, blog, x
   channelUrl    String @map("channel_url")
   followerCount Int?   @map("follower_count")
 

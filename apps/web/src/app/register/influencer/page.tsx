@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { prisma } from "@bling/database"
 import { RegisterInfluencerForm } from "./register-influencer-form"
 import { getInfluencerDraft, getInfluencerRegistrationGuide, getSocialPlatforms } from "./actions"
+import { AdvertiserRegisteredRedirect } from "./advertiser-registered-redirect"
 
 export default async function RegisterInfluencerPage() {
   const supabase = await createClient()
@@ -20,8 +21,12 @@ export default async function RegisterInfluencerPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { isOnboarded: true },
+    select: { isOnboarded: true, userType: true },
   })
+
+  if (dbUser?.userType === "advertiser") {
+    return <AdvertiserRegisteredRedirect />
+  }
 
   if (dbUser?.isOnboarded) {
     redirect("/")

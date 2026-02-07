@@ -132,7 +132,6 @@ export default function RegisterAdvertiserPage() {
     }
 
     router.push("/register/advertiser/complete")
-    router.refresh()
   }
 
   return (

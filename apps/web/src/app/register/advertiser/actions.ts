@@ -3,6 +3,26 @@
 import { createClient } from "@/lib/supabase/server"
 import { prisma } from "@bling/database"
 
+export async function deleteInfluencerDraft() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "로그인이 필요합니다" }
+  }
+
+  try {
+    await prisma.influencer.delete({
+      where: { id: user.id },
+    })
+    return { error: null }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "삭제에 실패했습니다" }
+  }
+}
+
 interface RegisterAdvertiserInput {
   companyName: string
   contactName: string

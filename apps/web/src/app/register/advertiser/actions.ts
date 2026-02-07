@@ -6,7 +6,8 @@ import { prisma } from "@bling/database"
 interface RegisterAdvertiserInput {
   companyName: string
   contactName: string
-  contactPhone: string
+  mobilePhone?: string
+  contactPhone?: string
   jobTitle?: string
   businessCategory: string
   companyUrl?: string
@@ -22,6 +23,10 @@ export async function registerAdvertiser(data: RegisterAdvertiserInput) {
 
   if (!user) {
     return { error: "로그인이 필요합니다" }
+  }
+
+  if (!data.businessLicenseUrl) {
+    return { error: "사업자등록증을 첨부해주세요" }
   }
 
   try {
@@ -45,7 +50,8 @@ export async function registerAdvertiser(data: RegisterAdvertiserInput) {
           companyDescription: data.companyDescription || null,
           businessLicenseUrl: data.businessLicenseUrl,
           contactName: data.contactName,
-          contactPhone: data.contactPhone,
+          mobilePhone: data.mobilePhone || null,
+          contactPhone: data.contactPhone || null,
           jobTitle: data.jobTitle || null,
         },
       })

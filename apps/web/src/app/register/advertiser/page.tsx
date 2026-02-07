@@ -23,15 +23,20 @@ const BUSINESS_CATEGORIES = [
   "건강/의료",
   "금융",
   "엔터테인먼트",
+  "기타",
 ] as const
 
 const advertiserSchema = z.object({
   companyName: z.string().min(1, "회사명을 입력해주세요"),
   contactName: z.string().min(1, "담당자 이름을 입력해주세요"),
-  contactPhone: z
+  mobilePhone: z
     .string()
-    .min(1, "연락처를 입력해주세요")
-    .regex(/^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/, "올바른 전화번호 형식을 입력해주세요"),
+    .optional()
+    .refine(
+      (val) => !val || /^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/.test(val),
+      "올바른 휴대전화번호 형식을 입력해주세요"
+    ),
+  contactPhone: z.string().optional(),
   jobTitle: z.string().optional(),
   businessCategory: z.string().min(1, "업종을 선택해주세요"),
   companyUrl: z
@@ -75,6 +80,11 @@ export default function RegisterAdvertiserPage() {
 
   const onSubmit = async (data: AdvertiserFormData) => {
     setServerError(null)
+
+    if (!licenseFile) {
+      setServerError("사업자등록증을 첨부해주세요")
+      return
+    }
 
     let businessLicenseUrl: string | null = null
 
@@ -236,19 +246,34 @@ export default function RegisterAdvertiserPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contactPhone">담당자 연락처 *</Label>
+                <Label htmlFor="mobilePhone">휴대전화번호 (선택)</Label>
                 <Input
-                  id="contactPhone"
+                  id="mobilePhone"
                   type="tel"
                   placeholder="010-1234-5678"
-                  {...register("contactPhone")}
+                  {...register("mobilePhone")}
                 />
-                {errors.contactPhone && (
+                {errors.mobilePhone && (
                   <p className="text-sm text-destructive">
-                    {errors.contactPhone.message}
+                    {errors.mobilePhone.message}
                   </p>
                 )}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contactPhone">연락처 (선택)</Label>
+              <Input
+                id="contactPhone"
+                type="text"
+                placeholder="유선전화, 이메일 등"
+                {...register("contactPhone")}
+              />
+              {errors.contactPhone && (
+                <p className="text-sm text-destructive">
+                  {errors.contactPhone.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -263,9 +288,9 @@ export default function RegisterAdvertiserPage() {
 
           {/* 사업자등록증 */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">사업자등록증 (선택)</h2>
+            <h2 className="text-lg font-semibold">사업자등록증 *</h2>
             <p className="text-sm text-muted-foreground">
-              사업자등록증을 첨부하시면 빠른 인증이 가능합니다 (최대 10MB)
+              사업자등록증을 첨부해주세요 (최대 10MB, PDF, JPG, PNG)
             </p>
 
             <input

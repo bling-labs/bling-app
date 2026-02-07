@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Geist_Mono } from "next/font/google"
+import { Toaster } from "sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 
@@ -19,7 +20,10 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <Toaster richColors position="top-center" />
+        </ThemeProvider>
       </body>
     </html>
   )

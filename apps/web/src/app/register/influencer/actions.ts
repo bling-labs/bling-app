@@ -162,13 +162,76 @@ export async function completeInfluencerRegistration(channels: SnsChannelInput[]
       })
       await tx.influencer.update({
         where: { id: user.id },
-        data: { status: "pending" },
+        data: { status: "applied" },
       })
     })
 
     return { error: null }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "등록에 실패했습니다" }
+  }
+}
+
+export async function updateAndResubmitRegistration(
+  basicInfo: BasicInfoInput,
+  channels: SnsChannelInput[]
+) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "로그인이 필요합니다" }
+  }
+
+  if (!channels || channels.length === 0) {
+    return { error: "SNS 채널을 최소 1개 등록해주세요" }
+  }
+
+  const validChannels = channels.filter(
+    (ch) => ch.platform && ch.channelUrl && ch.channelUrl.startsWith("http")
+  )
+  if (validChannels.length === 0) {
+    return { error: "유효한 SNS 채널을 입력해주세요" }
+  }
+
+  try {
+    const birthDate = parseBirthDateYYMMDD(basicInfo.birthDate)
+
+    await prisma.$transaction(async (tx) => {
+      await tx.influencer.update({
+        where: { id: user.id },
+        data: {
+          fullName: basicInfo.fullName,
+          nickname: basicInfo.nickname,
+          mobilePhone: basicInfo.mobilePhone || null,
+          landlinePhone: basicInfo.landlinePhone || null,
+          gender: basicInfo.gender as Gender,
+          birthDate,
+          categories: basicInfo.categories,
+          bio: basicInfo.bio || null,
+          company: basicInfo.company || null,
+          referralCode: basicInfo.referralCode || null,
+          status: "applied",
+        },
+      })
+      await tx.snsChannel.deleteMany({
+        where: { influencerId: user.id },
+      })
+      await tx.snsChannel.createMany({
+        data: validChannels.map((ch) => ({
+          influencerId: user.id,
+          platform: ch.platform,
+          channelUrl: ch.channelUrl,
+          isProfileVisible: ch.isProfileVisible ?? true,
+        })),
+      })
+    })
+
+    return { error: null }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "수정에 실패했습니다" }
   }
 }
 
@@ -258,6 +321,13 @@ export async function getInfluencerDraft(userId: string) {
       company: true,
       referralCode: true,
       status: true,
+      snsChannels: {
+        select: {
+          platform: true,
+          channelUrl: true,
+          isProfileVisible: true,
+        },
+      },
     },
   })
   return influencer

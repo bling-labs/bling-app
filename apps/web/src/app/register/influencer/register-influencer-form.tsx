@@ -9,12 +9,14 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import {
   saveInfluencerBasicInfo,
   completeInfluencerRegistration,
+  updateAndResubmitRegistration,
   verifyInviteCode,
   type BasicInfoInput,
   type SocialPlatformOption,
 } from "./actions"
+import { toast } from "sonner"
 import { Button, Input, Label, Textarea, Switch, Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@bling/ui"
-import { Sparkles, Plus, X, Loader2, Check, Minus, Mail, ChevronLeft, Info } from "lucide-react"
+import { Sparkles, Plus, X, Loader2, Check, Minus, Mail, Info } from "lucide-react"
 import { SignupProgress } from "@/components/auth/signup-progress"
 
 const CATEGORIES = [
@@ -100,6 +102,11 @@ interface RegisterInfluencerFormProps {
     company: string | null
     referralCode: string | null
   } | null
+  draftSnsChannels?: {
+    platform: string
+    channelUrl: string
+    isProfileVisible: boolean
+  }[] | null
 }
 
 function formatBirthDateToYYMMDD(date: Date): string {
@@ -115,6 +122,7 @@ export function RegisterInfluencerForm({
   guideHtml,
   socialPlatforms,
   draftBasicInfo,
+  draftSnsChannels,
 }: RegisterInfluencerFormProps) {
   const router = useRouter()
   const [step, setStep] = useState<0 | 1 | 2 | 3>(initialStep)
@@ -155,7 +163,9 @@ export function RegisterInfluencerForm({
   const snsForm = useForm<SnsChannelsFormData>({
     resolver: zodResolver(snsChannelsSchema),
     defaultValues: {
-      snsChannels: [{ platform: defaultPlatformCode, channelUrl: "", isProfileVisible: true }],
+      snsChannels: draftSnsChannels && draftSnsChannels.length > 0
+        ? draftSnsChannels
+        : [{ platform: defaultPlatformCode, channelUrl: "", isProfileVisible: true }],
     },
   })
 
@@ -231,6 +241,52 @@ export function RegisterInfluencerForm({
     setStep(3)
   })
 
+  const [isUpdating, setIsUpdating] = useState(false)
+
+  const handleUpdateAndResubmit = async () => {
+    setServerError(null)
+    setChannelUrlErrorIndex(null)
+
+    // 기본 정보 validation
+    const basicValid = await basicForm.trigger()
+    if (!basicValid) return
+
+    // SNS 채널 validation
+    const snsValid = await snsForm.trigger()
+    if (!snsValid) return
+
+    const snsData = snsForm.getValues("snsChannels")
+
+    // URL prefix 검증
+    for (let i = 0; i < snsData.length; i++) {
+      const ch = snsData[i]
+      if (!ch.channelUrl) continue
+      const rule = getUrlRuleForPlatform(ch.platform)
+      if (!ch.channelUrl.startsWith(rule.prefix)) {
+        setChannelUrlErrorIndex(i)
+        return
+      }
+    }
+
+    setIsUpdating(true)
+    const basicData = basicForm.getValues()
+    const input: BasicInfoInput = {
+      ...basicData,
+      birthDate: String(basicData.birthDate).replace(/\D/g, "").slice(0, 6),
+      gender: basicData.gender || "other",
+    }
+    const { error } = await updateAndResubmitRegistration(input, snsData)
+    setIsUpdating(false)
+
+    if (error) {
+      setServerError(error)
+      return
+    }
+
+    toast.success("수정 제출되었습니다")
+    router.refresh()
+  }
+
   const handleVerifyInviteCode = async () => {
     setInviteCodeError(null)
     setIsVerifying(true)
@@ -279,7 +335,7 @@ export function RegisterInfluencerForm({
             />
             <SidebarStep
               title="입력정보확인&완료"
-              status={step === 3 ? "active" : "pending"}
+              status={step === 3 ? "complete" : "pending"}
               description={step === 3 ? "제출 완료" : "정보 확인 및 제출"}
             />
           </aside>
@@ -555,29 +611,40 @@ export function RegisterInfluencerForm({
                         <div className="space-y-2">
                           <Label>플랫폼</Label>
                           <div className="flex flex-wrap gap-2">
-                            {(platformExpandedByChannel[index]
-                              ? [...defaultPlatforms, ...restPlatforms]
-                              : [...defaultPlatforms, ...(restPlatforms.length > 0 ? [{ code: "_other", label: "Other" }] : [])]
-                            ).map((p) => (
-                              <button
-                                key={p.code}
-                                type="button"
-                                onClick={() => {
-                                  if (p.code === "_other") {
-                                    setPlatformExpandedByChannel((prev) => ({ ...prev, [index]: true }))
-                                  } else {
-                                    snsForm.setValue(`snsChannels.${index}.platform`, p.code, { shouldValidate: true })
-                                  }
-                                }}
-                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                                  snsForm.watch(`snsChannels.${index}.platform`) === p.code
-                                    ? "bg-primary text-primary-foreground border-primary"
-                                    : "border-border bg-background hover:border-primary/50 hover:bg-muted/50"
-                                }`}
-                              >
-                                {p.label}
-                              </button>
-                            ))}
+                            {(() => {
+                              const usedPlatforms = snsFormValues
+                                ?.map((ch, i) => i !== index ? ch.platform : null)
+                                .filter(Boolean) ?? []
+                              const platforms = platformExpandedByChannel[index]
+                                ? [...defaultPlatforms, ...restPlatforms]
+                                : [...defaultPlatforms, ...(restPlatforms.length > 0 ? [{ code: "_other", label: "Other" }] : [])]
+                              return platforms.map((p) => {
+                                const isUsed = p.code !== "_other" && usedPlatforms.includes(p.code)
+                                return (
+                                  <button
+                                    key={p.code}
+                                    type="button"
+                                    disabled={isUsed}
+                                    onClick={() => {
+                                      if (p.code === "_other") {
+                                        setPlatformExpandedByChannel((prev) => ({ ...prev, [index]: true }))
+                                      } else {
+                                        snsForm.setValue(`snsChannels.${index}.platform`, p.code, { shouldValidate: true })
+                                      }
+                                    }}
+                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                                      isUsed
+                                        ? "border-border bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                                        : snsForm.watch(`snsChannels.${index}.platform`) === p.code
+                                          ? "bg-primary text-primary-foreground border-primary"
+                                          : "border-border bg-background hover:border-primary/50 hover:bg-muted/50"
+                                    }`}
+                                  >
+                                    {p.label}
+                                  </button>
+                                )
+                              })
+                            })()}
                           </div>
                         </div>
 
@@ -640,13 +707,17 @@ export function RegisterInfluencerForm({
                       type="button"
                       variant="outline"
                       className="w-full"
-                      onClick={() =>
+                      disabled={snsFormValues?.length >= [...defaultPlatforms, ...restPlatforms].length}
+                      onClick={() => {
+                        const usedPlatforms = snsFormValues?.map((ch) => ch.platform) ?? []
+                        const allPlatforms = [...defaultPlatforms, ...restPlatforms]
+                        const nextPlatform = allPlatforms.find((p) => !usedPlatforms.includes(p.code))?.code ?? defaultPlatformCode
                         append({
-                          platform: defaultPlatformCode,
+                          platform: nextPlatform,
                           channelUrl: "",
                           isProfileVisible: true,
                         })
-                      }
+                      }}
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       소셜 채널 추가
@@ -765,104 +836,245 @@ export function RegisterInfluencerForm({
                   {/* ── 구분선 ── */}
                   <div className="border-t border-border my-8" />
 
-                  {/* ── 섹션 2: 등록 정보 확인 ── */}
+                  {/* ── 섹션 2: 등록 정보 수정 ── */}
                   <div className="space-y-6">
                     <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
                       <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
-                        아래 등록정보를 확인하시고 수정이 필요하면 이전 단계로 이동해 수정 후 다시 제출하시면 수정된 정보로 신청이 완료됩니다.
+                        수정이 필요한 경우 아래 폼에서 수정 후 제출할 수 있습니다.
+                        (단, 검토중인 경우 수정이 제한되며 이 경우 이메일로 문의주세요.)
                       </p>
                     </div>
 
-                    {/* 기본 정보 요약 */}
+                    {/* 기본 정보 폼 */}
                     <div className="space-y-4">
                       <h4 className="text-base font-semibold border-b border-border pb-2">기본 정보</h4>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <InfoRow label="이메일" value={userEmail} />
-                        <InfoRow label="이름" value={basicForm.getValues("fullName")} />
-                        <InfoRow label="활동명" value={basicForm.getValues("nickname")} />
-                        <InfoRow label="생년월일" value={basicForm.getValues("birthDate")} />
-                        <InfoRow
-                          label="성별"
-                          value={
-                            basicForm.getValues("gender") === "male" ? "남성"
-                            : basicForm.getValues("gender") === "female" ? "여성"
-                            : "선택안함"
-                          }
-                        />
-                        {basicForm.getValues("mobilePhone") && (
-                          <InfoRow label="휴대폰" value={basicForm.getValues("mobilePhone")!} />
-                        )}
-                        {basicForm.getValues("landlinePhone") && (
-                          <InfoRow label="전화번호" value={basicForm.getValues("landlinePhone")!} />
-                        )}
-                        {basicForm.getValues("bio") && (
-                          <InfoRow label="한 줄 소개" value={basicForm.getValues("bio")!} fullWidth />
-                        )}
-                        {basicForm.getValues("company") && (
-                          <InfoRow label="소속회사" value={basicForm.getValues("company")!} />
-                        )}
-                        {basicForm.getValues("referralCode") && (
-                          <InfoRow label="추천인코드" value={basicForm.getValues("referralCode")!} />
-                        )}
-                      </div>
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">카테고리:</span>{" "}
-                        <span className="inline-flex flex-wrap gap-1.5 ml-1">
-                          {selectedCategories.map((cat) => (
-                            <span
-                              key={cat}
-                              className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium"
+
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="review-email">이메일</Label>
+                          <Input id="review-email" type="email" value={userEmail} readOnly className="bg-muted/50" />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="review-fullName">이름 (실명) *</Label>
+                            <Input id="review-fullName" {...basicForm.register("fullName")} />
+                            {basicForm.formState.errors.fullName && (
+                              <p className="text-xs text-destructive">{basicForm.formState.errors.fullName.message}</p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="review-nickname">활동명 (닉네임) *</Label>
+                            <Input id="review-nickname" {...basicForm.register("nickname")} />
+                            {basicForm.formState.errors.nickname && (
+                              <p className="text-xs text-destructive">{basicForm.formState.errors.nickname.message}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="review-birthDate">생년월일 *</Label>
+                            <Input id="review-birthDate" maxLength={6} placeholder="YYMMDD" {...basicForm.register("birthDate")} />
+                            {basicForm.formState.errors.birthDate && (
+                              <p className="text-xs text-destructive">{basicForm.formState.errors.birthDate.message}</p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <Label>성별 *</Label>
+                            <select
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              {...basicForm.register("gender")}
                             >
-                              {cat}
-                            </span>
-                          ))}
-                        </span>
+                              <option value="" disabled>선택해주세요</option>
+                              <option value="male">남성</option>
+                              <option value="female">여성</option>
+                              <option value="other">선택안함</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="review-mobilePhone">휴대폰번호 (선택)</Label>
+                            <Input id="review-mobilePhone" type="tel" placeholder="010-1234-5678" {...basicForm.register("mobilePhone")} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="review-landlinePhone">전화번호 (선택)</Label>
+                            <Input id="review-landlinePhone" type="tel" placeholder="02-1234-5678" {...basicForm.register("landlinePhone")} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="review-bio">한 줄 소개 (선택)</Label>
+                          <Textarea id="review-bio" rows={2} maxLength={80} {...basicForm.register("bio")} />
+                          <p className="text-xs text-muted-foreground text-right">
+                            {(basicForm.watch("bio")?.length ?? 0)}/80
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>활동 카테고리 * (최대 3개)</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {CATEGORIES.map((cat) => (
+                              <button
+                                key={cat}
+                                type="button"
+                                onClick={() => toggleCategory(cat)}
+                                className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                                  selectedCategories.includes(cat)
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "border-border text-muted-foreground hover:border-primary/50"
+                                }`}
+                              >
+                                {cat}
+                              </button>
+                            ))}
+                          </div>
+                          {basicForm.formState.errors.categories && (
+                            <p className="text-xs text-destructive">{basicForm.formState.errors.categories.message}</p>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="review-company">소속회사 (선택)</Label>
+                            <Input id="review-company" {...basicForm.register("company")} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="review-referralCode">추천인코드 (선택)</Label>
+                            <Input id="review-referralCode" {...basicForm.register("referralCode")} />
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* 소셜 채널 요약 */}
+                    {/* 소셜 채널 폼 */}
                     <div className="space-y-4">
                       <h4 className="text-base font-semibold border-b border-border pb-2">소셜 채널</h4>
-                      <div className="space-y-2">
-                        {snsForm.getValues("snsChannels")
-                          .filter((ch) => ch.platform && ch.channelUrl)
-                          .map((ch, i) => (
-                            <div key={i} className="flex items-center gap-3 text-sm border border-border rounded-lg p-3">
-                              <span className="font-medium capitalize min-w-[80px]">{ch.platform}</span>
-                              <a
-                                href={ch.channelUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline truncate"
-                              >
-                                {ch.channelUrl}
-                              </a>
-                              <span className={`ml-auto text-xs shrink-0 px-2 py-0.5 rounded-full ${
-                                ch.isProfileVisible
-                                  ? "bg-primary/10 text-primary"
-                                  : "bg-muted text-muted-foreground"
-                              }`}>
-                                {ch.isProfileVisible ? "노출" : "비공개"}
-                              </span>
+                      <div className="space-y-4">
+                        {fields.map((field, index) => (
+                          <div key={field.id} className="border border-border rounded-lg p-4 space-y-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">채널 {index + 1}</span>
+                              {fields.length > 1 && (
+                                <Button type="button" variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive h-8 px-2" onClick={() => remove(index)}>
+                                  삭제
+                                </Button>
+                              )}
                             </div>
-                          ))}
+
+                            <div className="space-y-2">
+                              <Label>플랫폼</Label>
+                              <div className="flex flex-wrap gap-2">
+                                {(() => {
+                                  const usedPlatforms = snsFormValues
+                                    ?.map((ch, i) => i !== index ? ch.platform : null)
+                                    .filter(Boolean) ?? []
+                                  const platforms = platformExpandedByChannel[index]
+                                    ? [...defaultPlatforms, ...restPlatforms]
+                                    : [...defaultPlatforms, ...(restPlatforms.length > 0 ? [{ code: "_other", label: "Other" }] : [])]
+                                  return platforms.map((p) => {
+                                    const isUsed = p.code !== "_other" && usedPlatforms.includes(p.code)
+                                    return (
+                                      <button
+                                        key={p.code}
+                                        type="button"
+                                        disabled={isUsed}
+                                        onClick={() => {
+                                          if (p.code === "_other") {
+                                            setPlatformExpandedByChannel((prev) => ({ ...prev, [index]: true }))
+                                          } else {
+                                            snsForm.setValue(`snsChannels.${index}.platform`, p.code, { shouldValidate: true })
+                                          }
+                                        }}
+                                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                                          isUsed
+                                            ? "border-border bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                                            : snsForm.watch(`snsChannels.${index}.platform`) === p.code
+                                              ? "bg-primary text-primary-foreground border-primary"
+                                              : "border-border bg-background hover:border-primary/50 hover:bg-muted/50"
+                                        }`}
+                                      >
+                                        {p.label}
+                                      </button>
+                                    )
+                                  })
+                                })()}
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>채널 URL</Label>
+                              <Input
+                                placeholder="https://..."
+                                {...snsForm.register(`snsChannels.${index}.channelUrl`)}
+                                onChange={(e) => {
+                                  snsForm.register(`snsChannels.${index}.channelUrl`).onChange(e)
+                                  if (channelUrlErrorIndex === index) setChannelUrlErrorIndex(null)
+                                }}
+                              />
+                              {channelUrlErrorIndex === index && (
+                                <p className="text-xs text-destructive">
+                                  {getUrlRuleForPlatform(snsForm.watch(`snsChannels.${index}.platform`)).message}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <Switch
+                                id={`review-profile-visible-${index}`}
+                                checked={snsForm.watch(`snsChannels.${index}.isProfileVisible`)}
+                                onCheckedChange={(checked) =>
+                                  snsForm.setValue(`snsChannels.${index}.isProfileVisible`, !!checked)
+                                }
+                              />
+                              <Label htmlFor={`review-profile-visible-${index}`} className="text-sm cursor-pointer">
+                                프로필 노출
+                              </Label>
+                            </div>
+                          </div>
+                        ))}
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full"
+                          disabled={snsFormValues?.length >= [...defaultPlatforms, ...restPlatforms].length}
+                          onClick={() => {
+                            const usedPlatforms = snsFormValues?.map((ch) => ch.platform) ?? []
+                            const allPlatforms = [...defaultPlatforms, ...restPlatforms]
+                            const nextPlatform = allPlatforms.find((p) => !usedPlatforms.includes(p.code))?.code ?? defaultPlatformCode
+                            append({ platform: nextPlatform, channelUrl: "", isProfileVisible: true })
+                          }}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          소셜 채널 추가
+                        </Button>
                       </div>
                     </div>
 
-                    {/* 이전 단계로 / 홈으로 */}
+                    {serverError && (
+                      <p className="text-sm text-destructive">{serverError}</p>
+                    )}
+
+                    {/* 수정 제출 / 홈으로 */}
                     <div className="flex gap-3 pt-4">
                       <Button
                         type="button"
-                        variant="outline"
-                        onClick={() => setStep(2)}
+                        className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                        disabled={isUpdating}
+                        onClick={handleUpdateAndResubmit}
                       >
-                        <ChevronLeft className="w-4 h-4 mr-1" />
-                        이전 단계로 수정
+                        {isUpdating ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "수정 제출하기"
+                        )}
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
-                        className="flex-1"
                         onClick={() => {
                           router.push("/")
                           router.refresh()
@@ -878,15 +1090,6 @@ export function RegisterInfluencerForm({
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function InfoRow({ label, value, fullWidth }: { label: string; value: string; fullWidth?: boolean }) {
-  return (
-    <div className={fullWidth ? "col-span-2" : ""}>
-      <span className="text-muted-foreground">{label}</span>
-      <p className="font-medium mt-0.5">{value}</p>
     </div>
   )
 }

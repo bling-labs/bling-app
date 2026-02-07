@@ -33,8 +33,15 @@ export default async function RegisterInfluencerPage() {
     getInfluencerRegistrationGuide(),
   ])
 
-  let initialStep: 0 | 1 | 2 = 0
-  if (draft?.status === "draft") {
+  // draft/applied 상태만 등록 페이지 접근 가능, 그 외(reviewing, active 등)는 마이페이지로 이동
+  if (draft && draft.status !== "draft" && draft.status !== "applied") {
+    redirect("/mypage")
+  }
+
+  let initialStep: 0 | 1 | 2 | 3 = 0
+  if (draft?.status === "applied") {
+    initialStep = 3
+  } else if (draft?.status === "draft") {
     initialStep = 2
   }
 
@@ -58,6 +65,15 @@ export default async function RegisterInfluencerPage() {
               company: draft.company,
               referralCode: draft.referralCode,
             }
+          : null
+      }
+      draftSnsChannels={
+        draft?.snsChannels && draft.snsChannels.length > 0
+          ? draft.snsChannels.map((ch) => ({
+              platform: ch.platform,
+              channelUrl: ch.channelUrl,
+              isProfileVisible: ch.isProfileVisible,
+            }))
           : null
       }
     />

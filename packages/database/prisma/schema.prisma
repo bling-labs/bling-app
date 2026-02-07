@@ -23,12 +23,13 @@ enum Gender {
 }
 
 enum InfluencerStatus {
-  draft     // 등록 중 (입력 미완료)
-  pending   // 심사 대기 (제출 완료, 승인 대기)
-  active    // 노출 중 (승인됨)
-  rejected  // 거절됨
-  suspended // 위반 등으로 중지
-  hidden    // 휴식(노출 비활성화)
+  draft      // 등록 중 (입력 미완료)
+  applied    // 제출 완료 (승인 대기)
+  reviewing  // 검토중 (관리자가 검토 시작)
+  active     // 노출 중 (승인됨)
+  rejected   // 거절됨
+  suspended  // 위반 등으로 중지
+  hidden     // 휴식(노출 비활성화)
 }
 
 // ===== 기본 유저 테이블 =====
@@ -186,8 +187,9 @@ model Advertiser {
   businessLicenseUrl String? @map("business_license_url")
 
   // 담당자 정보
-  contactName  String  @map("contact_name")
-  contactPhone String  @map("contact_phone")
+  contactName   String  @map("contact_name")
+  mobilePhone   String? @map("mobile_phone")   // 휴대전화번호 (선택)
+  contactPhone  String? @map("contact_phone")  // 연락처 - 유선/이메일 등 (선택)
   jobTitle     String? @map("job_title")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz

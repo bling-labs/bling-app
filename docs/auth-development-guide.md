@@ -76,6 +76,57 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
 
 ---
 
+### 1.6 RLS (Row Level Security)
+
+Supabase는 **RLS**로 anon 키로 들어오는 요청에 대한 접근을 제어합니다. 설정하지 않으면 Storage 업로드/다운로드가 거부됩니다.
+
+#### 1.6.1 Storage RLS
+
+우리 앱은 **광고주 사업자등록증**을 `documents` 버킷에 업로드합니다. (`app/register/advertiser/page.tsx` → `supabase.storage.from("documents").upload()`)
+
+1. **Storage → Buckets**에서 `documents` 버킷 생성 (없으면)
+2. **documents → Policies**에서 정책 추가:
+
+| 정책 | 작업 | 대상 | SQL |
+|------|------|------|-----|
+| 업로드 허용 | INSERT | `authenticated` | `bucket_id = 'documents' AND (storage.foldername(name))[1] = 'business-licenses'` |
+| 조회 허용 | SELECT | `authenticated` | 위와 동일 |
+
+**적용 방법 (둘 중 하나):**
+
+- **SQL Editor** (권장): Dashboard → **SQL Editor** → New query에 아래 전체 붙여넣고 **Run** 한 번으로 두 정책 모두 적용.
+- **Storage Policies UI**: Storage → documents → Policies → **New Policy** → For full customization. 정책은 한 번에 하나만 추가되므로, **INSERT 정책(첫 번째 블록) 적용 후, 다시 New Policy로 SELECT 정책(두 번째 블록)** 적용. → 두 번 해야 함.
+
+```sql
+-- 업로드: 로그인한 사용자가 business-licenses 폴더에 업로드 가능
+CREATE POLICY "Users can upload own business license"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'documents'
+  AND (storage.foldername(name))[1] = 'business-licenses'
+);
+
+-- 조회: 로그인한 사용자가 business-licenses 폴더 파일 조회 가능
+CREATE POLICY "Users can read own business license"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (
+  bucket_id = 'documents'
+  AND (storage.foldername(name))[1] = 'business-licenses'
+);
+```
+
+> 사업자등록증은 민감 문서이므로 `documents` 버킷은 **Private**으로 두고, 필요 시 `createSignedUrl()`로 임시 URL 생성하는 방식을 권장합니다.
+
+#### 1.6.2 Database RLS
+
+이 프로젝트는 **Prisma**로 DB 접근(`DATABASE_URL` 직접 연결)하므로, Supabase PostgREST API를 통한 테이블 조회는 하지 않습니다. 따라서 **Database RLS는 현재 Auth/회원가입 흐름에 필수는 아닙니다**.
+
+다만 Supabase 프로젝트를 쓰면 public 스키마에 RLS가 기본 적용될 수 있습니다. Prisma 연결에 사용하는 role이 RLS를 우회(예: `postgres` superuser)한다면 영향이 없고, 나중에 Supabase Realtime/PostgREST로 직접 테이블을 조회할 계획이 있다면 그때 RLS 정책을 정의해야 합니다.
+
+---
+
 ## 2. 환경변수와 코드 연결
 
 ### 2.1 사용하는 환경변수
@@ -302,6 +353,7 @@ if (!user) redirect("/auth/login")
 | Google 로그인 | Google provider + Client ID/Secret | `google-button.tsx` |
 | 리디렉트 | Redirect URLs에 `/auth/callback` 등록 | `signup-form`, `google-button`, `reset-password-form` |
 | 비밀번호 재설정 | Email provider | `reset-password-form`, `update-password-form` |
+| **RLS (Storage)** | `documents` 버킷에 INSERT/SELECT 정책 | 광고주 사업자등록증 업로드 (`register/advertiser/page.tsx`) |
 | 보호 경로 | - | `lib/supabase/middleware.ts` |
 | User 동기화 | - | `app/auth/callback/route.ts` |
 

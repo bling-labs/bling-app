@@ -19,3 +19,10 @@ export { Input } from "./components/input"
 export { Label } from "./components/label"
 export { Textarea } from "./components/textarea"
 export { Checkbox } from "./components/checkbox"
+export { Switch } from "./components/switch"
+export {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "./components/tooltip"

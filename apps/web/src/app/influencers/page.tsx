@@ -38,11 +38,10 @@ const SORT_OPTIONS = [
 
 const FOLLOWER_OPTIONS = [
   { value: "all", label: "전체" },
-  { value: "1k", label: "1K 이하" },
-  { value: "10k", label: "10K 이하" },
-  { value: "100k", label: "100K 이하" },
-  { value: "1m", label: "1M 이하" },
-  { value: "1m_plus", label: "1M 이상" },
+  { value: "-10k", label: "10k 이하" },
+  { value: "10k-100k", label: "10k~100k" },
+  { value: "100k-500k", label: "100k~500k" },
+  { value: "500k-", label: "500k 이상" },
 ]
 
 const CONTENTS_OPTIONS = [
@@ -50,12 +49,6 @@ const CONTENTS_OPTIONS = [
   { value: "10", label: "10개 이상" },
   { value: "50", label: "50개 이상" },
   { value: "100", label: "100개 이상" },
-]
-
-const TYPE_OPTIONS = [
-  { value: "all", label: "전체" },
-  { value: "social", label: "소셜 연동" },
-  { value: "content_only", label: "콘텐츠 전용" },
 ]
 
 const PAGE_SIZE = 12
@@ -422,12 +415,6 @@ function InfluencersFilters({
             value={minContents}
             options={CONTENTS_OPTIONS}
             onChange={onContentsChange}
-          />
-          <FilterDropdown
-            label="타입"
-            value={type}
-            options={TYPE_OPTIONS}
-            onChange={onTypeChange}
           />
         </div>
       </div>

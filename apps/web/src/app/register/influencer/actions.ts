@@ -19,7 +19,7 @@ export interface BasicInfoInput {
 export interface SnsChannelInput {
   platform: string
   channelUrl: string
-  followerCount?: string
+  isProfileVisible?: boolean
 }
 
 /** Parse YYMMDD (6 digits) to Date. YY: 00-50 -> 2000s, 51-99 -> 1900s */
@@ -157,9 +157,54 @@ export async function completeInfluencerRegistration(channels: SnsChannelInput[]
           influencerId: user.id,
           platform: ch.platform,
           channelUrl: ch.channelUrl,
-          followerCount: ch.followerCount ? parseInt(ch.followerCount, 10) : null,
+          isProfileVisible: ch.isProfileVisible ?? true,
         })),
       })
+      await tx.influencer.update({
+        where: { id: user.id },
+        data: { status: "pending" },
+      })
+    })
+
+    return { error: null }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "등록에 실패했습니다" }
+  }
+}
+
+export async function verifyInviteCode(code: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "로그인이 필요합니다" }
+  }
+
+  const trimmedCode = code.trim().toUpperCase()
+  if (!trimmedCode) {
+    return { error: "승인코드를 입력해주세요" }
+  }
+
+  try {
+    const inviteCode = await prisma.inviteCode.findUnique({
+      where: { code: trimmedCode },
+    })
+
+    if (!inviteCode) {
+      return { error: "유효하지 않은 승인코드입니다" }
+    }
+
+    if (inviteCode.expiresAt && inviteCode.expiresAt < new Date()) {
+      return { error: "만료된 승인코드입니다" }
+    }
+
+    if (inviteCode.maxUses && inviteCode.usedCount >= inviteCode.maxUses) {
+      return { error: "사용 횟수가 초과된 승인코드입니다" }
+    }
+
+    await prisma.$transaction(async (tx) => {
       await tx.influencer.update({
         where: { id: user.id },
         data: { status: "active" },
@@ -168,11 +213,15 @@ export async function completeInfluencerRegistration(channels: SnsChannelInput[]
         where: { id: user.id },
         data: { isOnboarded: true },
       })
+      await tx.inviteCode.update({
+        where: { id: inviteCode.id },
+        data: { usedCount: { increment: 1 } },
+      })
     })
 
     return { error: null }
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "등록에 실패했습니다" }
+    return { error: e instanceof Error ? e.message : "승인코드 확인에 실패했습니다" }
   }
 }
 

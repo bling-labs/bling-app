@@ -23,8 +23,9 @@ enum Gender {
 }
 
 enum InfluencerStatus {
-  draft     // 등록 중
-  active    // 노출 중
+  draft     // 등록 중 (입력 미완료)
+  pending   // 심사 대기 (제출 완료, 승인 대기)
+  active    // 노출 중 (승인됨)
   rejected  // 거절됨
   suspended // 위반 등으로 중지
   hidden    // 휴식(노출 비활성화)
@@ -137,9 +138,10 @@ model SnsChannel {
   influencerId String     @map("influencer_id") @db.Uuid
   influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
   
-  platform      String // youtube, instagram, tiktok, blog, x
-  channelUrl    String @map("channel_url")
-  followerCount Int?   @map("follower_count")
+  platform          String  // youtube, instagram, tiktok, blog, x
+  channelUrl        String  @map("channel_url")
+  followerCount     Int?    @map("follower_count")
+  isProfileVisible  Boolean @default(true) @map("is_profile_visible")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
@@ -155,6 +157,20 @@ model ContentBlock {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   @@map("content_blocks")
+}
+
+// ===== 초대/승인 코드 =====
+model InviteCode {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String    @unique // "BLING2024", "VIP-CREATOR" 등
+  type      String    @default("multi") // "single" = 1회용, "multi" = 다회용
+  usedCount Int       @default(0) @map("used_count")
+  maxUses   Int?      @map("max_uses") // null = 무제한
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz
+  createdBy String?   @map("created_by") @db.Uuid // 생성한 관리자 ID
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("invite_codes")
 }
 
 // ===== 광고주 =====

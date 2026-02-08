@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@bling/database": "workspace:*",
+    "@bling/mongodb": "workspace:*",
     "@bling/ui": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
     "@supabase/ssr": "^0.8.0",

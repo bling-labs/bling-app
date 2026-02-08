@@ -1,0 +1,4 @@
+{
+  "extends": "@bling/typescript-config/base.json",
+  "include": ["src/**/*.ts"]
+}

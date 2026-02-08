@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  transpilePackages: ["@bling/ui", "@bling/database"],
+  transpilePackages: ["@bling/ui", "@bling/database", "@bling/mongodb"],
   images: {
     remotePatterns: [
       {

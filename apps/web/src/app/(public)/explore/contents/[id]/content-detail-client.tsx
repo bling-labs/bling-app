@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils"
 import type { ContentDetailData, LicensePriceOption } from "@/data/content-detail"
 import type { BlingContentItem } from "@/data/influencer-detail"
 import { SECONDARY_CREATION_LABELS } from "@/data/content-detail"
+import { submitAdRequest } from "./actions"
 
 function formatPrice(price: number): string {
   return `₩${price.toLocaleString()}`
@@ -584,6 +585,8 @@ function CommissionDialog({
   content: ContentDetailData
 }) {
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     companyName: "",
     contactName: "",
@@ -602,10 +605,22 @@ function CommissionDialog({
     setFormData((prev) => ({ ...prev, [field]: e.target.value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Mock submission - future API integration
-    console.log("Commission request:", { contentId: content.id, creatorId: content.influencerId, ...formData })
+    setSubmitting(true)
+    setSubmitError(null)
+
+    const { error } = await submitAdRequest({
+      contentId: content.id,
+      creatorId: content.influencerId,
+      ...formData,
+    })
+
+    setSubmitting(false)
+    if (error) {
+      setSubmitError(error)
+      return
+    }
     setSubmitted(true)
   }
 
@@ -614,6 +629,7 @@ function CommissionDialog({
     // Reset after closing animation
     setTimeout(() => {
       setSubmitted(false)
+      setSubmitError(null)
       setFormData({
         companyName: "",
         contactName: "",
@@ -756,11 +772,17 @@ function CommissionDialog({
               />
             </div>
 
+            {submitError && (
+              <p className="text-sm text-destructive">{submitError}</p>
+            )}
+
             <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={handleClose}>
+              <Button type="button" variant="outline" onClick={handleClose} disabled={submitting}>
                 취소
               </Button>
-              <Button type="submit">의뢰 접수하기</Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? "접수 중..." : "의뢰 접수하기"}
+              </Button>
             </DialogFooter>
           </form>
         )}

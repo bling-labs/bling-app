@@ -4,7 +4,7 @@ import { Footer } from "@/components/footer"
 import { ContentDetailClient } from "./content-detail-client"
 import { getContentDetail } from "@/data/content-detail"
 
-export default async function ContentDetailPage({
+export default async function ExploreContentDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>

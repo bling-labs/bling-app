@@ -116,7 +116,7 @@ function InfluencerCard({ influencer }: { influencer: (typeof influencers)[0] })
 
   return (
     <Link
-      href="/influencers"
+      href="/explore/influencers"
       className="group block"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -228,7 +228,7 @@ export function InfluencersShowcase() {
             variant="ghost"
             className="text-primary hover:text-primary/90 group self-start sm:self-auto"
           >
-            <Link href="/influencers">
+            <Link href="/explore/influencers">
               전체 보기
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>

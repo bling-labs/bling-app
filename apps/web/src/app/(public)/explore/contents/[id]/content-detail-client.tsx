@@ -73,7 +73,7 @@ export function ContentDetailClient({ content }: { content: ContentDetailData })
       {/* Back link */}
       <div className="mt-6 mb-6">
         <Link
-          href={`/influencers/${content.influencerId}`}
+          href={`/explore/influencers/${content.influencerId}`}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -318,7 +318,7 @@ function CreatorProfileBlock({ content }: { content: ContentDetailData }) {
           )}
         </div>
       </div>
-      <Link href={`/influencers/${content.influencerId}`}>
+      <Link href={`/explore/influencers/${content.influencerId}`}>
         <Button variant="outline" size="sm" className="shrink-0 text-xs">
           프로필 보기
         </Button>
@@ -527,7 +527,7 @@ function CreatorOtherContentsSection({
             <ChevronRight className="w-4 h-4" />
           </button>
           <Link
-            href={`/influencers/${influencerId}`}
+            href={`/explore/influencers/${influencerId}`}
             className="text-sm text-primary hover:underline ml-2"
           >
             전체보기
@@ -542,7 +542,7 @@ function CreatorOtherContentsSection({
         {contents.map((item) => (
           <Link
             key={item.id}
-            href={`/contents/${item.id}`}
+            href={`/explore/contents/${item.id}`}
             className="group flex-shrink-0 w-[180px] snap-start"
           >
             <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-muted">

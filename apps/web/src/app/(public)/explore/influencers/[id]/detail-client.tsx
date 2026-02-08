@@ -53,7 +53,7 @@ export function InfluencerDetailClient({ detail }: { detail: InfluencerDetailDat
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
       {/* Back link */}
       <Link
-        href="/influencers"
+        href="/explore/influencers"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mt-6 mb-4"
       >
         <ChevronLeft className="w-4 h-4" />
@@ -334,7 +334,7 @@ function ContentsTab({
               {contents.map((item) => (
                 <Link
                   key={item.id}
-                  href={`/contents/${item.id}`}
+                  href={`/explore/contents/${item.id}`}
                   className="group block rounded-xl overflow-hidden border border-border hover:border-primary/50 bg-card"
                 >
                   <div className="relative aspect-[9/16]">

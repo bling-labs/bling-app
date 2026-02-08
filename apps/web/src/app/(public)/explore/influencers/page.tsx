@@ -223,7 +223,7 @@ function InfluencerCard({ influencer }: { influencer: InfluencerItem }) {
   const tags = influencer.category.split(/[·,]/).map((t) => t.trim()).filter(Boolean)
 
   return (
-    <Link href={`/influencers/${influencer.id}`} className="block">
+    <Link href={`/explore/influencers/${influencer.id}`} className="block">
       <article
         className="group flex flex-col md:flex-row rounded-2xl overflow-hidden border border-border bg-card hover:border-primary/50 hover:shadow-xl transition-all duration-200"
         tabIndex={0}

@@ -9,7 +9,10 @@ export type {
   SnsChannel,
   SocialPlatform,
   ContentBlock,
+  InfluencerContent,
   UserType,
   Gender,
   InfluencerStatus,
+  ContentType,
+  ContentStatus,
 } from "@prisma/client"

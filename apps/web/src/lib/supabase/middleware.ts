@@ -34,7 +34,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // 비로그인 유저가 보호된 라우트에 접근하면 로그인 페이지로
-  const protectedPaths = ["/register", "/auth/welcome", "/mypage"]
+  const protectedPaths = ["/register", "/auth/welcome", "/creator", "/advertiser"]
   const isProtectedRoute = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   )

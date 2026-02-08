@@ -82,10 +82,9 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-40 md:pb-24">
-      {/* Back + Share */}
       <div className="flex items-center justify-between mt-6 mb-4">
         <Link
-          href="/contests"
+          href="/explore/contests"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -102,7 +101,6 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
         </button>
       </div>
 
-      {/* Hero: Poster */}
       <div className="relative w-full aspect-[16/9] max-h-[360px] rounded-xl overflow-hidden bg-muted">
         <Image
           src={contest.posterImageUrl}
@@ -120,7 +118,6 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
         </div>
       </div>
 
-      {/* Meta strip */}
       <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <Calendar className="w-4 h-4" />
@@ -151,13 +148,11 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
         )}
       </div>
 
-      {/* 1. 내용 */}
       <SectionTitle>내용</SectionTitle>
       <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
         {contest.content}
       </div>
 
-      {/* 2. 혜택 */}
       {contest.benefits && (
         <>
           <SectionTitle>혜택</SectionTitle>
@@ -167,7 +162,6 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
         </>
       )}
 
-      {/* 3. 게시될 플랫폼 */}
       {contest.platforms && contest.platforms.length > 0 && (
         <>
           <SectionTitle>게시될 플랫폼</SectionTitle>
@@ -184,7 +178,6 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
         </>
       )}
 
-      {/* 4. 지원조건 */}
       {(contest.supportConditions || contest.eligibility) && (
         <>
           <SectionTitle>지원조건</SectionTitle>
@@ -194,7 +187,6 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
         </>
       )}
 
-      {/* 5. 기타 */}
       {contest.etc && (
         <>
           <SectionTitle>기타</SectionTitle>
@@ -204,7 +196,6 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
         </>
       )}
 
-      {/* 6. 공통 Q&A */}
       {contest.faq && contest.faq.length > 0 && (
         <>
           <SectionTitle>공통 Q&A</SectionTitle>
@@ -225,7 +216,6 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
         </>
       )}
 
-      {/* 7. 법적·운영 안내 */}
       {contest.legalNotice && (
         <>
           <SectionTitle>법적·운영 안내</SectionTitle>
@@ -239,13 +229,10 @@ export function ContestDetailClient({ contest }: { contest: ContestDetailData })
         </>
       )}
 
-      {/* CTA: Sticky on mobile */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t border-border md:relative md:mt-10 md:p-0 md:bg-transparent md:border-0 md:backdrop-blur-none">
         <div className="max-w-3xl mx-auto md:max-w-none">
           <Button size="lg" className="w-full md:w-auto" asChild>
-            <Link href="#">
-              참가하기
-            </Link>
+            <Link href="#">참가하기</Link>
           </Button>
           <p className="mt-2 text-xs text-muted-foreground text-center md:text-left">
             참가 신청은 추후 연동 예정입니다.

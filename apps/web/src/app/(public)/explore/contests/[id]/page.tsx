@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ContestDetailClient } from "./contest-detail-client"
@@ -22,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function ContestDetailPage({ params }: Props) {
+export default async function ExploreContestDetailPage({ params }: Props) {
   const { id } = await params
   const contest = getContestDetail(id)
   if (!contest) notFound()

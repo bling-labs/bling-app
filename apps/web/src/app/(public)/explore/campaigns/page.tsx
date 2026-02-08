@@ -30,8 +30,6 @@ const CATEGORIES = [
 
 type AnalysisState = "idle" | "loading" | "done"
 
-/* ──────────────────────────── 프로그레스 바 ──────────────────────────── */
-
 function ProgressBar({ value, barColor }: { value: number; barColor: string }) {
   return (
     <div className="h-1.5 w-full rounded-full bg-muted">
@@ -42,8 +40,6 @@ function ProgressBar({ value, barColor }: { value: number; barColor: string }) {
     </div>
   )
 }
-
-/* ──────────────────────────── 적합성 분석 Col 3 (desktop) ──────────────────────────── */
 
 function FitAnalysisPanel({
   campaign,
@@ -64,7 +60,6 @@ function FitAnalysisPanel({
 
   return (
     <div className="flex flex-col h-full">
-      {/* 상단: 적합성 분석 */}
       <div className="flex-1 min-h-0">
         {analysisState === "idle" && (
           <div className="flex flex-col items-center justify-center h-full text-center px-2">
@@ -101,8 +96,6 @@ function FitAnalysisPanel({
         {analysisState === "done" && (
           <div className="space-y-3 px-1">
             <p className="text-xs font-semibold text-foreground">적합성 분석 결과</p>
-
-            {/* 종합 점수 */}
             <div className="text-center py-2">
               <span className="text-2xl font-bold text-foreground">{fit.overallScore}</span>
               <span className="text-xs text-muted-foreground ml-1">점</span>
@@ -113,8 +106,6 @@ function FitAnalysisPanel({
                 <ProgressBar value={fit.overallScore} barColor={getFitLabel(fit.overallScore).barColor} />
               </div>
             </div>
-
-            {/* 세부 항목 */}
             {[
               { label: "카테고리", value: fit.categoryMatch },
               { label: "오디언스", value: fit.audienceOverlap },
@@ -126,24 +117,17 @@ function FitAnalysisPanel({
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] text-muted-foreground">{item.label}</span>
                     <span className="text-[11px] text-muted-foreground">
-                      {item.value}%{" "}
-                      <span className={cn("font-medium", fl.color)}>{fl.label}</span>
+                      {item.value}% <span className={cn("font-medium", fl.color)}>{fl.label}</span>
                     </span>
                   </div>
                   <ProgressBar value={item.value} barColor={fl.barColor} />
                 </div>
               )
             })}
-
-            {/* AI 인사이트 */}
             <div className="pt-2 border-t border-border">
               <p className="text-[11px] font-semibold text-foreground mb-1">AI 인사이트</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                {fit.insight}
-              </p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{fit.insight}</p>
             </div>
-
-            {/* 추천 콘텐츠 방향 */}
             <div>
               <p className="text-[11px] font-semibold text-foreground mb-1">추천 콘텐츠 방향</p>
               <ul className="space-y-1">
@@ -158,8 +142,6 @@ function FitAnalysisPanel({
           </div>
         )}
       </div>
-
-      {/* 하단: 지원자 통계 */}
       <div className="border-t border-border mt-3 pt-2">
         <button
           type="button"
@@ -193,9 +175,7 @@ function FitAnalysisPanel({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-muted-foreground">{ratio.toFixed(1)}:1</span>
-              <span className={cn("text-[11px] font-medium", comp.color)}>
-                경쟁률 {comp.label}
-              </span>
+              <span className={cn("text-[11px] font-medium", comp.color)}>경쟁률 {comp.label}</span>
             </div>
           </div>
         )}
@@ -203,8 +183,6 @@ function FitAnalysisPanel({
     </div>
   )
 }
-
-/* ──────────────────── 적합성 축약 (tablet/mobile) ──────────────────── */
 
 function FitAnalysisInline({
   campaign,
@@ -246,19 +224,14 @@ function FitAnalysisInline({
         <div className="flex items-center gap-2">
           <Loader2 className="w-4 h-4 text-primary animate-spin" />
           <span className="text-xs text-muted-foreground">AI 분석 중...</span>
-          <span className="ml-auto text-[11px] text-muted-foreground">
-            경쟁률 {ratio.toFixed(1)}:1
-          </span>
+          <span className="ml-auto text-[11px] text-muted-foreground">경쟁률 {ratio.toFixed(1)}:1</span>
         </div>
       )}
 
       {analysisState === "done" && (
         <div className="space-y-3">
-          {/* 요약 행 */}
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-foreground">
-              적합성 {fit.overallScore}점
-            </span>
+            <span className="text-sm font-bold text-foreground">적합성 {fit.overallScore}점</span>
             <span className={cn("text-xs font-medium", getFitLabel(fit.overallScore).color)}>
               {getFitLabel(fit.overallScore).label}
             </span>
@@ -267,8 +240,6 @@ function FitAnalysisInline({
               <span className={cn("ml-1 font-medium", comp.color)}>({comp.label})</span>
             </span>
           </div>
-
-          {/* 세부 바 */}
           <div className="grid grid-cols-3 gap-3">
             {[
               { label: "카테고리", value: fit.categoryMatch },
@@ -280,28 +251,17 @@ function FitAnalysisInline({
                 <div key={item.label}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[10px] text-muted-foreground">{item.label}</span>
-                    <span className={cn("text-[10px] font-medium", fl.color)}>
-                      {item.value}%
-                    </span>
+                    <span className={cn("text-[10px] font-medium", fl.color)}>{item.value}%</span>
                   </div>
                   <ProgressBar value={item.value} barColor={fl.barColor} />
                 </div>
               )
             })}
           </div>
-
-          {/* AI 인사이트 */}
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            {fit.insight}
-          </p>
-
-          {/* 추천 방향 */}
+          <p className="text-[11px] text-muted-foreground leading-relaxed">{fit.insight}</p>
           <div className="flex flex-wrap gap-1.5">
             {fit.suggestedAngles.map((angle, i) => (
-              <span
-                key={i}
-                className="px-2 py-0.5 rounded bg-muted text-[10px] text-foreground"
-              >
+              <span key={i} className="px-2 py-0.5 rounded bg-muted text-[10px] text-foreground">
                 {angle}
               </span>
             ))}
@@ -311,8 +271,6 @@ function FitAnalysisInline({
     </div>
   )
 }
-
-/* ──────────────────────────── 캠페인 카드 ──────────────────────────── */
 
 function CampaignCard({
   campaign,
@@ -334,10 +292,9 @@ function CampaignCard({
 
   return (
     <Link
-      href={`/campaigns/${campaign.id}`}
+      href={`/explore/campaigns/${campaign.id}`}
       className="group flex flex-col sm:flex-row gap-4 md:gap-5 p-4 sm:p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-card/80 transition-all"
     >
-      {/* Col 1: 포스터 이미지 (30%) */}
       <div className="relative w-full sm:w-[30%] shrink-0 aspect-[4/3] rounded-lg overflow-hidden bg-muted">
         <Image
           src={campaign.posterImageUrl}
@@ -351,11 +308,8 @@ function CampaignCard({
           인플루언서 전용
         </span>
       </div>
-
-      {/* Col 2: 설명 (50%) */}
       <div className="flex-1 min-w-0 flex flex-col justify-between">
         <div>
-          {/* 광고주 */}
           <div className="flex items-center gap-2 mb-1.5">
             {campaign.advertiserLogoUrl && (
               <Image
@@ -368,18 +322,10 @@ function CampaignCard({
             )}
             <span className="text-xs text-muted-foreground">{campaign.advertiserName}</span>
           </div>
-
-          {/* 제목 */}
           <h2 className="text-lg font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
             {campaign.title}
           </h2>
-
-          {/* 요약 */}
-          <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
-            {campaign.summary}
-          </p>
-
-          {/* 보수 */}
+          <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{campaign.summary}</p>
           <div className="mt-3 flex items-center gap-2 flex-wrap">
             <span className="px-2.5 py-1 rounded-md bg-accent/20 text-accent text-xs font-semibold">
               기본 {formatCurrency(campaign.baseFee)}
@@ -389,28 +335,19 @@ function CampaignCard({
             </span>
           </div>
         </div>
-
         <div className="mt-3">
-          {/* 메타 */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>마감 {campaign.applicationDeadline}</span>
             <span>모집 {campaign.recruitCount}명</span>
             <span>팔로워 {formatFollowers(campaign.minFollowers)}+</span>
           </div>
-
-          {/* 플랫폼 칩 */}
           <div className="mt-2 flex flex-wrap gap-1.5">
             {campaign.platforms.map((p) => (
-              <span
-                key={p}
-                className="px-2 py-0.5 rounded bg-muted text-foreground text-xs"
-              >
+              <span key={p} className="px-2 py-0.5 rounded bg-muted text-foreground text-xs">
                 {p}
               </span>
             ))}
           </div>
-
-          {/* 적합성 축약 (md 미만에서만 표시) */}
           <div className="md:hidden">
             <FitAnalysisInline
               campaign={campaign}
@@ -418,16 +355,12 @@ function CampaignCard({
               onAnalyze={handleAnalyze}
             />
           </div>
-
-          {/* 자세히 보기 */}
           <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary group-hover:underline">
             자세히 보기
             <ArrowRight className="w-4 h-4" />
           </span>
         </div>
       </div>
-
-      {/* Col 3: 적합성 분석 (20%, md 이상에서만) */}
       <div className="hidden md:flex md:w-[20%] shrink-0 flex-col border-l border-border pl-4">
         <FitAnalysisPanel
           campaign={campaign}
@@ -441,27 +374,18 @@ function CampaignCard({
   )
 }
 
-/* ──────────────────────────── Empty State ──────────────────────────── */
-
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-24 px-4">
       <div className="text-4xl mb-4">📢</div>
-      <h3 className="text-xl font-semibold text-foreground mb-2">
-        진행 중인 캠페인이 없습니다
-      </h3>
-      <p className="text-muted-foreground text-center max-w-sm">
-        곧 새로운 캠페인이 올라올 예정입니다.
-      </p>
+      <h3 className="text-xl font-semibold text-foreground mb-2">진행 중인 캠페인이 없습니다</h3>
+      <p className="text-muted-foreground text-center max-w-sm">곧 새로운 캠페인이 올라올 예정입니다.</p>
     </div>
   )
 }
 
-/* ──────────────────────────── 페이지 ──────────────────────────── */
-
-export default function CampaignsPage() {
+export default function ExploreCampaignsPage() {
   const [category, setCategory] = useState("전체")
-
   const filtered =
     category === "전체"
       ? CAMPAIGNS_DATA
@@ -471,15 +395,10 @@ export default function CampaignsPage() {
     <main className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-16">
-        {/* 헤더 */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-12 pb-4">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">캠페인</h1>
-          <p className="mt-2 text-muted-foreground">
-            인플루언서를 위한 브랜드 콘텐츠 제작 캠페인
-          </p>
+          <p className="mt-2 text-muted-foreground">인플루언서를 위한 브랜드 콘텐츠 제작 캠페인</p>
         </div>
-
-        {/* 필터 바 (sticky) */}
         <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-xl border-b border-border">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -501,8 +420,6 @@ export default function CampaignsPage() {
             </div>
           </div>
         </div>
-
-        {/* 목록 */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {filtered.length === 0 ? (
             <EmptyState />

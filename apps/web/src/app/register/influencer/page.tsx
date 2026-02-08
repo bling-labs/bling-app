@@ -40,7 +40,7 @@ export default async function RegisterInfluencerPage() {
 
   // draft/applied 상태만 등록 페이지 접근 가능, 그 외(reviewing, active 등)는 마이페이지로 이동
   if (draft && draft.status !== "draft" && draft.status !== "applied") {
-    redirect("/mypage")
+    redirect("/creator")
   }
 
   let initialStep: 0 | 1 | 2 | 3 = 0

@@ -10,10 +10,9 @@ import { CONTESTS_DATA, type ContestItem } from "@/data/contests"
 function ContestCard({ contest, isPriority }: { contest: ContestItem; isPriority?: boolean }) {
   return (
     <Link
-      href={`/contests/${contest.id}`}
+      href={`/explore/contests/${contest.id}`}
       className="group flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 sm:p-6 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-card/80 transition-all"
     >
-      {/* 좌측: 포스터 이미지 (4:3) */}
       <div className="relative w-full sm:w-[280px] shrink-0 aspect-[4/3] rounded-lg overflow-hidden bg-muted">
         <Image
           src={contest.posterImageUrl}
@@ -24,8 +23,6 @@ function ContestCard({ contest, isPriority }: { contest: ContestItem; isPriority
           priority={isPriority}
         />
       </div>
-
-      {/* 우측: 타이틀, 요약, 핵심 정보 */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
         <h2 className="text-lg sm:text-xl font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
           {contest.title}
@@ -33,15 +30,9 @@ function ContestCard({ contest, isPriority }: { contest: ContestItem; isPriority
         <p className="mt-2 text-sm text-muted-foreground line-clamp-2 sm:line-clamp-3">
           {contest.summary}
         </p>
-        <p className="mt-3 text-xs text-muted-foreground">
-          접수 {contest.applicationPeriod}
-        </p>
-        <p className="mt-3 text-xs text-muted-foreground">
-          콘텐츠유형 {contest.contentType} 
-        </p>
-        <p className="mt-3 text-xs text-muted-foreground">
-          지원자격 {contest.eligibility}
-        </p>
+        <p className="mt-3 text-xs text-muted-foreground">접수 {contest.applicationPeriod}</p>
+        <p className="mt-3 text-xs text-muted-foreground">콘텐츠유형 {contest.contentType}</p>
+        <p className="mt-3 text-xs text-muted-foreground">지원자격 {contest.eligibility}</p>
         <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary group-hover:underline">
           자세히 보기
           <ArrowRight className="w-4 h-4" />
@@ -63,7 +54,7 @@ function EmptyState() {
   )
 }
 
-export default function ContestsPage() {
+export default function ExploreContestsPage() {
   const contests = CONTESTS_DATA
 
   return (
@@ -71,13 +62,10 @@ export default function ContestsPage() {
       <Navbar />
       <div className="pt-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-          {/* 페이지 헤더 */}
           <header className="mb-10">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">컨테스트</h1>
             <p className="mt-2 text-muted-foreground">진행 중인 공모전을 확인하세요</p>
           </header>
-
-          {/* 목록 */}
           {contests.length === 0 ? (
             <EmptyState />
           ) : (

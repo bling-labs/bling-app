@@ -34,7 +34,7 @@ export default function AdvertiserCompletePage() {
                 콘텐츠 둘러보기
               </Button>
             </Link>
-            <Link href="/influencers">
+            <Link href="/explore/influencers">
               <Button
                 size="lg"
                 className="w-full sm:w-auto gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground"

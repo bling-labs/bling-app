@@ -32,6 +32,16 @@ enum InfluencerStatus {
   hidden     // 휴식(노출 비활성화)
 }
 
+enum ContentType {
+  video
+  image
+}
+
+enum ContentStatus {
+  draft   // 비공개
+  visible // 노출(광고주 검색 대상)
+}
+
 // ===== 기본 유저 테이블 =====
 model User {
   id            String    @id @db.Uuid // = auth.users.id
@@ -83,6 +93,7 @@ model Influencer {
 
   // 관계
   snsChannels SnsChannel[]
+  contents    InfluencerContent[]
 
   @@map("influencers")
 }
@@ -147,6 +158,26 @@ model SnsChannel {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   @@map("sns_channels")
+}
+
+// ===== 인플루언서 콘텐츠 (마이페이지 등록) =====
+model InfluencerContent {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  influencerId String        @map("influencer_id") @db.Uuid
+  influencer   Influencer    @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  type          ContentType  @map("type") // video | image
+  title         String       @map("title")
+  description   String?      @map("description") @db.Text
+  thumbnailUrl  String       @map("thumbnail_url")
+  videoUrl      String?      @map("video_url")   // 영상일 때
+  platform      String       @map("platform")    // youtube, instagram, tiktok 등
+  status        ContentStatus @default(draft) @map("status")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("influencer_contents")
 }
 
 // ===== 콘텐츠 블록 (안내사항 등, 관리자 웹에디터로 수정) =====
